@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Арта — сила и мощь</title>
+    <!-- Шрифты Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Russo+One&display=swap" rel="stylesheet" />
+    <style>
+        /* -------------------- Общие стили -------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* -------------------- Фон с анимированными звёздами и частицами -------------------- */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* -------------------- Контейнер для контента (поверх фона) -------------------- */
+        .content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 30px 40px;
+        }
+
+        /* -------------------- Шапка / Навигация -------------------- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffd700, #ff6a00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            letter-spacing: 3px;
+        }
+
+        .logo span {
+            display: inline-block;
+            animation: pulse-logo 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-logo {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .nav a {
+            color: #ccc;
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: color 0.3s, text-shadow 0.3s;
+            position: relative;
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: #ffd700;
+            transition: width 0.3s;
+        }
+
+        .nav a:hover {
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        .nav a:hover::after {
+            width: 100%;
+        }
+
+        /* -------------------- Герой-секция -------------------- */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 50%, #ff0066 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            margin-bottom: 20px;
+            animation: glow-text 3s ease-in-out infinite alternate;
+            letter-spacing: 5px;
+        }
+
+        @keyframes glow-text {
+            0% {
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            }
+            100% {
+                text-shadow: 0 0 60px rgba(255, 215, 0, 0.8), 0 0 120px rgba(255, 100, 0, 0.5);
+            }
+        }
+
+        .hero .subtitle {
+            font-size: 1.8rem;
+            color: #aaa;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            font-family: 'Russo One', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .hero .subtitle span {
+            color: #ffd700;
+            font-weight: 700;
+        }
+
+        .hero p {
+            max-width: 700px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #bbb;
+            margin-bottom: 40px;
+            font-family: 'Segoe UI', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 48px;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-decoration: none;
+            background: transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn:hover {
+            background: #ffd700;
+            color: #0a0a0f;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+            transform: scale(1.05);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            transform: rotate(0deg);
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        /* -------------------- Секция "О Арте" -------------------- */
+        .section {
+            padding: 80px 0;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .section h2 {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(45deg, #ffd700, #ff6a00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .grid-2 .text {
+            font-size: 1.05rem;
+            line-height: 1.9;
+            color: #ccc;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .grid-2 .text strong {
+            color: #ffd700;
+        }
+
+        .grid-2 .visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 300px;
+        }
+
+        /* Анимированная сцена с кубами и артой */
+        .scene {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1/1;
+            position: relative;
+            perspective: 800px;
+        }
+
+        .cube-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate-scene 20s linear infinite;
+        }
+
+        @keyframes rotate-scene {
+            0% {
+                transform: rotateX(-20deg) rotateY(0deg);
+            }
+            100% {
+                transform: rotateX(-20deg) rotateY(360deg);
+            }
+        }
+
+        .cube {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 2px solid rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            transform-style: preserve-3d;
+            transition: all 0.1s;
+        }
+
+        .cube::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 100, 0, 0.1));
+            opacity: 0.5;
+        }
+
+        /* Позиционирование кубов в сцене */
+        .c1 {
+            top: 10%;
+            left: 10%;
+            animation: float-cube 4s ease-in-out infinite alternate;
+        }
+        .c2 {
+            bottom: 15%;
+            right: 5%;
+            animation: float-cube 5s ease-in-out infinite alternate-reverse;
+            width: 80px;
+            height: 80px;
+        }
+        .c3 {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 215, 0, 0.25);
+            border-color: #ffd700;
+            animation: float-cube 6s ease-in-out infinite alternate;
+        }
+        .c4 {
+            bottom: 5%;
+            left: 25%;
+            width: 50px;
+            height: 50px;
+            animation: float-cube 3.5s ease-in-out infinite alternate-reverse;
+        }
+        .c5 {
+            top: 5%;
+            right: 20%;
+            width: 70px;
+            height: 70px;
+            animation: float-cube 4.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes float-cube {
+            0% {
+                transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+            }
+            100% {
+                transform: translateY(-30px) rotateX(20deg) rotateY(30deg);
+            }
+        }
+
+        /* Символ Арты (сияющий шар) */
+        .arta-symbol {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffd700, #ff6a00);
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.7), 0 0 160px rgba(255, 100, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #0a0a0f;
+            font-family: 'Russo One', sans-serif;
+            animation: pulse-symbol 2s ease-in-out infinite alternate;
+            z-index: 10;
+        }
+
+        @keyframes pulse-symbol {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 80px rgba(255, 215, 0, 0.7), 0 0 160px rgba(255, 100, 0, 0.4);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 120px rgba(255, 215, 0, 1), 0 0 240px rgba(255, 100, 0, 0.6);
+            }
+        }
+
+        /* -------------------- Секция "Победа над Кубами" -------------------- */
+        .victory-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            padding: 30px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700, #ff6a00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #aaa;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* -------------------- Футер -------------------- */
+        .footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            color: #666;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .footer span {
+            color: #ffd700;
+        }
+
+        /* -------------------- Адаптивность -------------------- */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .nav a {
+                margin-left: 15px;
+                font-size: 0.7rem;
+            }
+            .logo {
+                font-size: 1.3rem;
+            }
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            .section h2 {
+                font-size: 2.2rem;
+            }
+            .btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+            .scene {
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .nav a {
+                margin: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Холст для частиц -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Основной контент -->
+    <div class="content">
+
+        <!-- Шапка -->
+        <header class="header">
+            <div class="logo"><span>⚡ АРТА</span></div>
+            <nav class="nav">
+                <a href="#about">О силе</a>
+                <a href="#victory">Победа</a>
+                <a href="#stats">Статистика</a>
+            </nav>
+        </header>
+
+        <!-- Герой -->
+        <section class="hero">
+            <h1>АРТА — СИЛА И МОЩЬ</h1>
+            <div class="subtitle">Победитель <span>Кубов</span></div>
+            <p>
+                Арта — это воплощение абсолютной мощи. Её энергия сокрушила бесконечные легионы Кубов,
+                превратив хаос в гармонию. Теперь она правит миром, где нет места слабости.
+            </p>
+            <a href="#about" class="btn">Узнать больше</a>
+        </section>
+
+        <!-- Секция "О силе" -->
+        <section class="section" id="about">
+            <h2>🔥 Истоки могущества</h2>
+            <div class="grid-2">
+                <div class="text">
+                    <p>
+                        <strong>Арта</strong> — древняя сущность, рождённая в центре вселенной.
+                        Её сила не имеет границ: она управляет временем, пространством и энергией.
+                        Когда Кубы попытались захватить контроль над реальностью, Арта обрушила на них
+                        свою ярость. Каждый Куб был разбит в пыль, а их осколки стали звёздами на небе.
+                    </p>
+                    <p style="margin-top: 20px;">
+                        Сегодня Арта — символ несокрушимой воли и абсолютной власти.
+                        Её имя произносят с трепетом, а её свет озаряет путь всем, кто ищет силу.
+                    </p>
+                </div>
+                <div class="visual">
+                    <div class="scene">
+                        <div class="cube-container">
+                            <!-- Кубы -->
+                            <div class="cube c1"></div>
+                            <div class="cube c2"></div>
+                            <div class="cube c3"></div>
+                            <div class="cube c4"></div>
+                            <div class="cube c5"></div>
+                            <!-- Символ Арты -->
+                            <div class="arta-symbol">A</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция "Победа над Кубами" -->
+        <section class="section" id="victory">
+            <h2>⚔️ Сокрушение Кубов</h2>
+            <div class="grid-2">
+                <div class="visual">
+                    <div style="width:100%; max-width:400px; position:relative; aspect-ratio:1/1; display:flex; justify-content:center; align-items:center; background:radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 70%); border-radius:50%;">
+                        <div style="font-size:6rem; filter: drop-shadow(0 0 40px rgba(255,215,0,0.8)); animation: pulse-symbol 2s infinite alternate;">⚡</div>
+                        <div style="position:absolute; width:100%; height:100%; border:2px dashed rgba(255,215,0,0.2); border-radius:50%; animation: rotate-scene 30s linear infinite;"></div>
+                        <div style="position:absolute; width:80%; height:80%; border:1px solid rgba(255,215,0,0.1); border-radius:50%; animation: rotate-scene 20s linear infinite reverse;"></div>
+                    </div>
+                </div>
+                <div class="text">
+                    <p>
+                        <strong>Битва длилась вечность.</strong> Кубы, порождения чистого порядка, пытались
+                        подчинить себе всё сущее. Но Арта, воплощение хаоса и мощи, обратила их же силу против них.
+                        Удар за ударом — и бесчисленные армии Кубов пали, оставив после себя лишь сияющую пыль.
+                    </p>
+                    <p style="margin-top:20px;">
+                        Теперь Кубов больше нет. Их осколки разбросаны по вселенной, напоминая о том, что
+                        <strong>истинная сила</strong> всегда побеждает.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция "Статистика" -->
+        <section class="section" id="stats">
+            <h2>📊 Цифры победы</h2>
+            <div class="victory-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="9999">0</span>
+                    <span class="stat-label">Кубов уничтожено</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="777">0</span>
+                    <span class="stat-label">Галактик освобождено</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="∞">∞</span>
+                    <span class="stat-label">Силы Арты</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Футер -->
+        <footer class="footer">
+            <p>© 2026 <span>Арта</span> — сила и мощь. Победа над Кубами навечно.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // -------------------- Частицы на холсте --------------------
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.color = `rgba(255, 215, 0, ${this.opacity})`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function initParticles(count = 120) {
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            // Соединения между близкими частицами
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 215, 0, ${0.1 * (1 - dist / 150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // -------------------- Анимация чисел (статистика) --------------------
+        const statNumbers = document.querySelectorAll('.stat-number');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.getAttribute('data-target'));
+                    if (isNaN(target)) return; // бесконечность не анимируем
+                    let current = 0;
+                    const increment = Math.ceil(target / 80);
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        el.textContent = current.toLocaleString();
+                    }, 25);
+                    observer.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        statNumbers.forEach(el => {
+            const target = el.getAttribute('data-target');
+            if (target === '∞') {
+                el.textContent = '∞';
+                return;
+            }
+            observer.observe(el);
+        });
+
+        // -------------------- Плавный скролл для ссылок --------------------
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
