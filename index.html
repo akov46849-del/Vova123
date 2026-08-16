@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Арта — сила и мощь</title>
-    <!-- Шрифты Google Fonts -->
+    <title>Арта — официальный мерч</title>
+    <!-- Шрифты -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Russo+One&display=swap" rel="stylesheet" />
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
         /* -------------------- Общие стили -------------------- */
         * {
@@ -16,13 +18,18 @@
 
         body {
             background: #0a0a0f;
-            color: #fff;
+            color: #f0f0f0;
             font-family: 'Orbitron', sans-serif;
-            overflow-x: hidden;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* -------------------- Фон с анимированными звёздами и частицами -------------------- */
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* -------------------- Фон с частицами (как на прошлом сайте) -------------------- */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -33,396 +40,421 @@
             pointer-events: none;
         }
 
-        /* -------------------- Контейнер для контента (поверх фона) -------------------- */
         .content {
             position: relative;
             z-index: 1;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
-            padding: 20px 30px 40px;
+            padding: 0 20px 30px;
         }
 
-        /* -------------------- Шапка / Навигация -------------------- */
+        /* -------------------- Header / Навигация -------------------- */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 25px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.15);
             flex-wrap: wrap;
+            gap: 15px;
         }
 
         .logo {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 900;
             background: linear-gradient(45deg, #ffd700, #ff6a00);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-            letter-spacing: 3px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
         }
 
-        .logo span {
-            display: inline-block;
-            animation: pulse-logo 2s ease-in-out infinite;
+        .logo i {
+            -webkit-text-fill-color: initial;
+            color: #ffd700;
+            margin-right: 8px;
         }
 
-        @keyframes pulse-logo {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 25px;
         }
 
-        .nav a {
+        .header-actions a {
             color: #ccc;
-            text-decoration: none;
-            margin-left: 30px;
             font-size: 0.9rem;
             letter-spacing: 1px;
-            transition: color 0.3s, text-shadow 0.3s;
-            position: relative;
+            transition: color 0.3s;
         }
 
-        .nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0%;
-            height: 2px;
-            background: #ffd700;
-            transition: width 0.3s;
-        }
-
-        .nav a:hover {
+        .header-actions a:hover {
             color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
         }
 
-        .nav a:hover::after {
-            width: 100%;
+        .cart-icon {
+            position: relative;
+            font-size: 1.6rem;
+            color: #ffd700;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
 
-        /* -------------------- Герой-секция -------------------- */
+        .cart-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -10px;
+            right: -12px;
+            background: #ff0066;
+            color: #fff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-family: 'Segoe UI', sans-serif;
+            box-shadow: 0 0 15px rgba(255, 0, 102, 0.6);
+        }
+
+        /* -------------------- Герой-секция с призывом -------------------- */
         .hero {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 70vh;
             text-align: center;
-            padding: 40px 0;
-            position: relative;
+            padding: 60px 0 50px;
         }
 
         .hero h1 {
-            font-size: 5rem;
+            font-size: 4rem;
             font-weight: 900;
-            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 50%, #ff0066 100%);
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #ff0066);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
-            margin-bottom: 20px;
-            animation: glow-text 3s ease-in-out infinite alternate;
-            letter-spacing: 5px;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
+            margin-bottom: 15px;
+            letter-spacing: 4px;
+            animation: glow-text 3s infinite alternate;
         }
 
         @keyframes glow-text {
-            0% {
-                text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-            }
-            100% {
-                text-shadow: 0 0 60px rgba(255, 215, 0, 0.8), 0 0 120px rgba(255, 100, 0, 0.5);
-            }
-        }
-
-        .hero .subtitle {
-            font-size: 1.8rem;
-            color: #aaa;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            font-family: 'Russo One', sans-serif;
-            text-transform: uppercase;
-        }
-
-        .hero .subtitle span {
-            color: #ffd700;
-            font-weight: 700;
+            0% { text-shadow: 0 0 20px rgba(255,215,0,0.2); }
+            100% { text-shadow: 0 0 60px rgba(255,215,0,0.7), 0 0 120px rgba(255,100,0,0.4); }
         }
 
         .hero p {
-            max-width: 700px;
-            font-size: 1.1rem;
-            line-height: 1.8;
+            font-size: 1.2rem;
             color: #bbb;
-            margin-bottom: 40px;
+            max-width: 700px;
+            line-height: 1.8;
+            margin-bottom: 30px;
             font-family: 'Segoe UI', sans-serif;
-            letter-spacing: 0.5px;
         }
 
-        .btn {
+        .btn-primary {
             display: inline-block;
-            padding: 16px 48px;
+            padding: 14px 48px;
             border: 2px solid #ffd700;
             color: #ffd700;
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 3px;
-            text-decoration: none;
             background: transparent;
             transition: all 0.3s ease;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
             font-family: 'Orbitron', sans-serif;
         }
 
-        .btn:hover {
+        .btn-primary:hover {
             background: #ffd700;
             color: #0a0a0f;
             box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
             transform: scale(1.05);
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 60%);
-            opacity: 0;
-            transition: opacity 0.5s;
-            transform: rotate(0deg);
-        }
-
-        .btn:hover::before {
-            opacity: 1;
-        }
-
-        /* -------------------- Секция "О Арте" -------------------- */
-        .section {
-            padding: 80px 0;
-            border-top: 1px solid rgba(255, 215, 0, 0.1);
-        }
-
-        .section h2 {
-            font-size: 3rem;
+        /* -------------------- Каталог товаров -------------------- */
+        .section-title {
+            font-size: 2.8rem;
             text-align: center;
-            margin-bottom: 40px;
+            margin: 60px 0 40px;
             background: linear-gradient(45deg, #ffd700, #ff6a00);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 3px;
         }
 
-        .grid-2 {
+        .products-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .product-card {
+            background: rgba(255, 215, 0, 0.03);
+            border: 1px solid rgba(255, 215, 0, 0.12);
+            border-radius: 16px;
+            padding: 25px 20px 30px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            display: flex;
+            flex-direction: column;
             align-items: center;
         }
 
-        .grid-2 .text {
-            font-size: 1.05rem;
-            line-height: 1.9;
-            color: #ccc;
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+
+        .product-image {
+            font-size: 4.5rem;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.2));
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+
+        .product-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            color: #ffd700;
+            font-weight: 700;
+            margin: 10px 0 15px;
+        }
+
+        .product-price small {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 400;
+        }
+
+        .btn-add {
+            background: transparent;
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 10px 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            width: 100%;
+            max-width: 180px;
+            border-radius: 30px;
+        }
+
+        .btn-add:hover {
+            background: #ffd700;
+            color: #0a0a0f;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-add:active {
+            transform: scale(0.95);
+        }
+
+        /* -------------------- Секция "О бренде" -------------------- */
+        .about {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .about-text {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .about-text h2 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ffd700, #ff6a00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .about-text p {
+            color: #bbb;
+            line-height: 1.8;
             font-family: 'Segoe UI', sans-serif;
         }
 
-        .grid-2 .text strong {
+        .about-image {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            justify-content: center;
+            font-size: 8rem;
+            filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.15));
+        }
+
+        /* -------------------- Корзина (модальное окно) -------------------- */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cart-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .cart-modal {
+            background: #12121a;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            padding: 30px 25px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .cart-modal h2 {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .cart-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .cart-close:hover {
             color: #ffd700;
         }
 
-        .grid-2 .visual {
+        .cart-item {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            position: relative;
-            min-height: 300px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.08);
+            color: #eee;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Анимированная сцена с кубами и артой */
-        .scene {
-            width: 100%;
-            max-width: 400px;
-            aspect-ratio: 1/1;
-            position: relative;
-            perspective: 800px;
+        .cart-item:last-child {
+            border-bottom: none;
         }
 
-        .cube-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            animation: rotate-scene 20s linear infinite;
+        .cart-item-name {
+            font-weight: 600;
         }
 
-        @keyframes rotate-scene {
-            0% {
-                transform: rotateX(-20deg) rotateY(0deg);
-            }
-            100% {
-                transform: rotateX(-20deg) rotateY(360deg);
-            }
+        .cart-item-price {
+            color: #ffd700;
         }
 
-        .cube {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 215, 0, 0.15);
-            border: 2px solid rgba(255, 215, 0, 0.6);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-            transform-style: preserve-3d;
-            transition: all 0.1s;
+        .cart-item-remove {
+            color: #ff0066;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            transition: color 0.2s;
         }
 
-        .cube::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 100, 0, 0.1));
-            opacity: 0.5;
+        .cart-item-remove:hover {
+            color: #ff4444;
         }
 
-        /* Позиционирование кубов в сцене */
-        .c1 {
-            top: 10%;
-            left: 10%;
-            animation: float-cube 4s ease-in-out infinite alternate;
-        }
-        .c2 {
-            bottom: 15%;
-            right: 5%;
-            animation: float-cube 5s ease-in-out infinite alternate-reverse;
-            width: 80px;
-            height: 80px;
-        }
-        .c3 {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 215, 0, 0.25);
-            border-color: #ffd700;
-            animation: float-cube 6s ease-in-out infinite alternate;
-        }
-        .c4 {
-            bottom: 5%;
-            left: 25%;
-            width: 50px;
-            height: 50px;
-            animation: float-cube 3.5s ease-in-out infinite alternate-reverse;
-        }
-        .c5 {
-            top: 5%;
-            right: 20%;
-            width: 70px;
-            height: 70px;
-            animation: float-cube 4.5s ease-in-out infinite alternate;
-        }
-
-        @keyframes float-cube {
-            0% {
-                transform: translateY(0px) rotateX(0deg) rotateY(0deg);
-            }
-            100% {
-                transform: translateY(-30px) rotateX(20deg) rotateY(30deg);
-            }
-        }
-
-        /* Символ Арты (сияющий шар) */
-        .arta-symbol {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #ffd700, #ff6a00);
-            box-shadow: 0 0 80px rgba(255, 215, 0, 0.7), 0 0 160px rgba(255, 100, 0, 0.4);
+        .cart-total {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: 900;
-            color: #0a0a0f;
-            font-family: 'Russo One', sans-serif;
-            animation: pulse-symbol 2s ease-in-out infinite alternate;
-            z-index: 10;
+            justify-content: space-between;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 20px 0 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255, 215, 0, 0.2);
         }
 
-        @keyframes pulse-symbol {
-            0% {
-                transform: translate(-50%, -50%) scale(1);
-                box-shadow: 0 0 80px rgba(255, 215, 0, 0.7), 0 0 160px rgba(255, 100, 0, 0.4);
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1.1);
-                box-shadow: 0 0 120px rgba(255, 215, 0, 1), 0 0 240px rgba(255, 100, 0, 0.6);
-            }
+        .cart-total span:last-child {
+            color: #ffd700;
         }
 
-        /* -------------------- Секция "Победа над Кубами" -------------------- */
-        .victory-stats {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .stat-item {
+        .cart-empty {
             text-align: center;
-            flex: 1;
-            min-width: 150px;
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.15);
-            padding: 30px 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
-            transition: transform 0.3s, box-shadow 0.3s;
+            color: #888;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 30px 0;
         }
 
-        .stat-item:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.15);
-        }
-
-        .stat-number {
-            font-size: 3.5rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, #ffd700, #ff6a00);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: block;
-        }
-
-        .stat-label {
+        .btn-checkout {
+            width: 100%;
+            padding: 14px;
+            background: #ffd700;
+            color: #0a0a0f;
+            border: none;
             font-size: 1rem;
-            color: #aaa;
-            margin-top: 10px;
-            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .btn-checkout:hover {
+            background: #ffaa00;
+            transform: scale(1.02);
         }
 
         /* -------------------- Футер -------------------- */
         .footer {
             text-align: center;
             padding: 40px 0 20px;
-            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            border-top: 1px solid rgba(255, 215, 0, 0.08);
             color: #666;
             font-size: 0.8rem;
             letter-spacing: 1px;
+            margin-top: 40px;
         }
 
         .footer span {
@@ -431,167 +463,266 @@
 
         /* -------------------- Адаптивность -------------------- */
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 3rem;
-            }
-            .hero .subtitle {
-                font-size: 1.2rem;
-            }
-            .grid-2 {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-            .nav a {
-                margin-left: 15px;
-                font-size: 0.7rem;
-            }
-            .logo {
-                font-size: 1.3rem;
-            }
-            .stat-number {
-                font-size: 2.5rem;
-            }
-            .section h2 {
-                font-size: 2.2rem;
-            }
-            .btn {
-                padding: 12px 30px;
-                font-size: 1rem;
-            }
-            .scene {
-                max-width: 300px;
-            }
+            .hero h1 { font-size: 2.8rem; }
+            .section-title { font-size: 2rem; }
+            .header { flex-direction: column; align-items: stretch; }
+            .header-actions { justify-content: flex-end; }
+            .about { flex-direction: column; text-align: center; }
+            .product-card { padding: 20px 15px; }
         }
 
         @media (max-width: 480px) {
-            .hero h1 {
-                font-size: 2.2rem;
-            }
-            .header {
-                flex-direction: column;
-                gap: 15px;
-            }
-            .nav a {
-                margin: 0 10px;
-            }
+            .hero h1 { font-size: 2rem; }
+            .products-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
+            .product-image { font-size: 3rem; }
+            .product-name { font-size: 1rem; }
+            .product-price { font-size: 1.2rem; }
+            .btn-add { font-size: 0.7rem; padding: 8px 15px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Холст для частиц -->
+    <!-- Частицы -->
     <canvas id="particles-canvas"></canvas>
 
     <!-- Основной контент -->
     <div class="content">
 
-        <!-- Шапка -->
+        <!-- Header -->
         <header class="header">
-            <div class="logo"><span>⚡ АРТА</span></div>
-            <nav class="nav">
-                <a href="#about">О силе</a>
-                <a href="#victory">Победа</a>
-                <a href="#stats">Статистика</a>
-            </nav>
+            <div class="logo"><i class="fas fa-bolt"></i> АРТА</div>
+            <div class="header-actions">
+                <a href="#catalog">Каталог</a>
+                <a href="#about">О нас</a>
+                <div class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
         </header>
 
         <!-- Герой -->
         <section class="hero">
-            <h1>АРТА — СИЛА И МОЩЬ</h1>
-            <div class="subtitle">Победитель <span>Кубов</span></div>
-            <p>
-                Арта — это воплощение абсолютной мощи. Её энергия сокрушила бесконечные легионы Кубов,
-                превратив хаос в гармонию. Теперь она правит миром, где нет места слабости.
-            </p>
-            <a href="#about" class="btn">Узнать больше</a>
+            <h1>СИЛА В КАЖДОЙ ДЕТАЛИ</h1>
+            <p>Официальный мерч Арты — носи энергию победителя. Футболки, худи, аксессуары, вдохновлённые мощью, сокрушившей Кубов.</p>
+            <a href="#catalog" class="btn-primary"><i class="fas fa-arrow-down"></i> Смотреть товары</a>
         </section>
 
-        <!-- Секция "О силе" -->
-        <section class="section" id="about">
-            <h2>🔥 Истоки могущества</h2>
-            <div class="grid-2">
-                <div class="text">
-                    <p>
-                        <strong>Арта</strong> — древняя сущность, рождённая в центре вселенной.
-                        Её сила не имеет границ: она управляет временем, пространством и энергией.
-                        Когда Кубы попытались захватить контроль над реальностью, Арта обрушила на них
-                        свою ярость. Каждый Куб был разбит в пыль, а их осколки стали звёздами на небе.
-                    </p>
-                    <p style="margin-top: 20px;">
-                        Сегодня Арта — символ несокрушимой воли и абсолютной власти.
-                        Её имя произносят с трепетом, а её свет озаряет путь всем, кто ищет силу.
-                    </p>
-                </div>
-                <div class="visual">
-                    <div class="scene">
-                        <div class="cube-container">
-                            <!-- Кубы -->
-                            <div class="cube c1"></div>
-                            <div class="cube c2"></div>
-                            <div class="cube c3"></div>
-                            <div class="cube c4"></div>
-                            <div class="cube c5"></div>
-                            <!-- Символ Арты -->
-                            <div class="arta-symbol">A</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <!-- Каталог -->
+        <h2 class="section-title" id="catalog">⚡ Мерч Арты</h2>
+        <div class="products-grid" id="productsContainer">
+            <!-- Товары будут добавлены через JS -->
+        </div>
 
-        <!-- Секция "Победа над Кубами" -->
-        <section class="section" id="victory">
-            <h2>⚔️ Сокрушение Кубов</h2>
-            <div class="grid-2">
-                <div class="visual">
-                    <div style="width:100%; max-width:400px; position:relative; aspect-ratio:1/1; display:flex; justify-content:center; align-items:center; background:radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 70%); border-radius:50%;">
-                        <div style="font-size:6rem; filter: drop-shadow(0 0 40px rgba(255,215,0,0.8)); animation: pulse-symbol 2s infinite alternate;">⚡</div>
-                        <div style="position:absolute; width:100%; height:100%; border:2px dashed rgba(255,215,0,0.2); border-radius:50%; animation: rotate-scene 30s linear infinite;"></div>
-                        <div style="position:absolute; width:80%; height:80%; border:1px solid rgba(255,215,0,0.1); border-radius:50%; animation: rotate-scene 20s linear infinite reverse;"></div>
-                    </div>
-                </div>
-                <div class="text">
-                    <p>
-                        <strong>Битва длилась вечность.</strong> Кубы, порождения чистого порядка, пытались
-                        подчинить себе всё сущее. Но Арта, воплощение хаоса и мощи, обратила их же силу против них.
-                        Удар за ударом — и бесчисленные армии Кубов пали, оставив после себя лишь сияющую пыль.
-                    </p>
-                    <p style="margin-top:20px;">
-                        Теперь Кубов больше нет. Их осколки разбросаны по вселенной, напоминая о том, что
-                        <strong>истинная сила</strong> всегда побеждает.
-                    </p>
-                </div>
+        <!-- О бренде -->
+        <div class="about" id="about">
+            <div class="about-text">
+                <h2>Арта — это стиль и мощь</h2>
+                <p>
+                    Каждый предмет нашей коллекции создан, чтобы передать дух несокрушимой силы. 
+                    Мы используем высококачественные материалы и уникальный дизайн, вдохновлённый 
+                    победой Арты над Кубовами. Будь частью легенды.
+                </p>
             </div>
-        </section>
-
-        <!-- Секция "Статистика" -->
-        <section class="section" id="stats">
-            <h2>📊 Цифры победы</h2>
-            <div class="victory-stats">
-                <div class="stat-item">
-                    <span class="stat-number" data-target="9999">0</span>
-                    <span class="stat-label">Кубов уничтожено</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" data-target="777">0</span>
-                    <span class="stat-label">Галактик освобождено</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" data-target="∞">∞</span>
-                    <span class="stat-label">Силы Арты</span>
-                </div>
+            <div class="about-image">
+                <i class="fas fa-crown" style="color: #ffd700;"></i>
             </div>
-        </section>
+        </div>
 
         <!-- Футер -->
         <footer class="footer">
-            <p>© 2026 <span>Арта</span> — сила и мощь. Победа над Кубами навечно.</p>
+            <p>© 2026 <span>Арта</span> — официальный мерч. Все права защищены.</p>
         </footer>
+    </div>
 
+    <!-- Модальное окно корзины -->
+    <div class="cart-overlay" id="cartOverlay">
+        <div class="cart-modal">
+            <span class="cart-close" id="cartClose"><i class="fas fa-times"></i></span>
+            <h2><i class="fas fa-shopping-cart"></i> Корзина</h2>
+            <div id="cartItems"></div>
+            <div class="cart-total">
+                <span>Итого:</span>
+                <span id="cartTotalPrice">0 ₽</span>
+            </div>
+            <button class="btn-checkout" id="checkoutBtn">Оформить заказ</button>
+        </div>
     </div>
 
     <script>
-        // -------------------- Частицы на холсте --------------------
+        // -------------------- Данные товаров --------------------
+        const products = [
+            { id: 1, name: 'Футболка "Арта"', price: 2990, icon: '👕', desc: 'Хлопок 100%' },
+            { id: 2, name: 'Худи "Сила"', price: 4990, icon: '🧥', desc: 'Уютный флис' },
+            { id: 3, name: 'Кружка "Энергия"', price: 1290, icon: '☕', desc: 'Керамика 350 мл' },
+            { id: 4, name: 'Постер "Победа"', price: 990, icon: '🖼️', desc: 'Формат А2' },
+            { id: 5, name: 'Стикерпак "Арта"', price: 590, icon: '🎨', desc: '10 наклеек' },
+            { id: 6, name: 'Брелок "Молния"', price: 790, icon: '⚡', desc: 'Металл' }
+        ];
+
+        // -------------------- Корзина (массив) --------------------
+        let cart = [];
+
+        // -------------------- Рендеринг товаров --------------------
+        const container = document.getElementById('productsContainer');
+
+        function renderProducts() {
+            container.innerHTML = '';
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-image">${p.icon}</div>
+                    <div class="product-name">${p.name}</div>
+                    <div style="font-size:0.8rem; color:#888; margin-bottom:6px;">${p.desc}</div>
+                    <div class="product-price">${p.price.toLocaleString()} <small>₽</small></div>
+                    <button class="btn-add" data-id="${p.id}">Добавить в корзину</button>
+                `;
+                container.appendChild(card);
+            });
+
+            // Обработчики для кнопок "Добавить"
+            document.querySelectorAll('.btn-add').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    addToCart(id);
+                });
+            });
+        }
+
+        // -------------------- Работа с корзиной --------------------
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            updateCartUI();
+            showNotification(`+ ${product.name} добавлен`);
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            document.getElementById('cartTotalPrice').textContent = total.toLocaleString() + ' ₽';
+
+            renderCartItems();
+        }
+
+        function renderCartItems() {
+            const container = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                container.innerHTML = '<div class="cart-empty">Корзина пуста. Добавьте товары!</div>';
+                return;
+            }
+
+            let html = '';
+            cart.forEach(item => {
+                html += `
+                    <div class="cart-item">
+                        <span>${item.icon} ${item.name}</span>
+                        <span>
+                            <span class="cart-item-price">${(item.price * item.quantity).toLocaleString()} ₽</span>
+                            <span style="font-size:0.8rem; color:#888; margin:0 8px;">×${item.quantity}</span>
+                            <span class="cart-item-remove" data-id="${item.id}"><i class="fas fa-trash-alt"></i></span>
+                        </span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Обработчики удаления
+            document.querySelectorAll('.cart-item-remove').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    removeFromCart(id);
+                });
+            });
+        }
+
+        // -------------------- Уведомление (простой toast) --------------------
+        function showNotification(text) {
+            const old = document.querySelector('.toast-notification');
+            if (old) old.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = text;
+            Object.assign(toast.style, {
+                position: 'fixed',
+                bottom: '30px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: '#1a1a2e',
+                color: '#ffd700',
+                padding: '12px 28px',
+                borderRadius: '40px',
+                border: '1px solid #ffd700',
+                boxShadow: '0 0 40px rgba(255,215,0,0.2)',
+                fontFamily: 'Orbitron, sans-serif',
+                fontSize: '0.9rem',
+                zIndex: '2000',
+                opacity: '0',
+                transition: 'opacity 0.4s ease',
+                backdropFilter: 'blur(4px)',
+                letterSpacing: '1px'
+            });
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 2000);
+        }
+
+        // -------------------- Открытие / закрытие корзины --------------------
+        const overlay = document.getElementById('cartOverlay');
+        const cartIcon = document.getElementById('cartIcon');
+        const closeBtn = document.getElementById('cartClose');
+
+        cartIcon.addEventListener('click', () => {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            renderCartItems();
+        });
+
+        closeBtn.addEventListener('click', closeCart);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeCart();
+        });
+
+        function closeCart() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // -------------------- Оформление заказа (демо) --------------------
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            if (cart.length === 0) {
+                showNotification('Корзина пуста!');
+                return;
+            }
+            alert('Спасибо за заказ! (Это демо-версия)');
+            cart = [];
+            updateCartUI();
+            closeCart();
+            showNotification('Заказ оформлен!');
+        });
+
+        // -------------------- Частицы (как на первом сайте) --------------------
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -611,9 +742,9 @@
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
                 this.size = Math.random() * 2 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 0.5;
-                this.speedY = (Math.random() - 0.5) * 0.5;
-                this.opacity = Math.random() * 0.5 + 0.1;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.4;
+                this.opacity = Math.random() * 0.4 + 0.1;
                 this.color = `rgba(255, 215, 0, ${this.opacity})`;
             }
             update() {
@@ -631,7 +762,7 @@
             }
         }
 
-        function initParticles(count = 120) {
+        function initParticles(count = 100) {
             particles = [];
             for (let i = 0; i < count; i++) {
                 particles.push(new Particle());
@@ -645,15 +776,15 @@
                 p.update();
                 p.draw();
             });
-            // Соединения между близкими частицами
+            // линии соединения
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
                     const dx = particles[i].x - particles[j].x;
                     const dy = particles[i].y - particles[j].y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 150) {
+                    if (dist < 130) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(255, 215, 0, ${0.1 * (1 - dist / 150)})`;
+                        ctx.strokeStyle = `rgba(255, 215, 0, ${0.08 * (1 - dist / 130)})`;
                         ctx.lineWidth = 0.5;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -665,49 +796,9 @@
         }
         animateParticles();
 
-        // -------------------- Анимация чисел (статистика) --------------------
-        const statNumbers = document.querySelectorAll('.stat-number');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const el = entry.target;
-                    const target = parseInt(el.getAttribute('data-target'));
-                    if (isNaN(target)) return; // бесконечность не анимируем
-                    let current = 0;
-                    const increment = Math.ceil(target / 80);
-                    const timer = setInterval(() => {
-                        current += increment;
-                        if (current >= target) {
-                            current = target;
-                            clearInterval(timer);
-                        }
-                        el.textContent = current.toLocaleString();
-                    }, 25);
-                    observer.unobserve(el);
-                }
-            });
-        }, { threshold: 0.5 });
-
-        statNumbers.forEach(el => {
-            const target = el.getAttribute('data-target');
-            if (target === '∞') {
-                el.textContent = '∞';
-                return;
-            }
-            observer.observe(el);
-        });
-
-        // -------------------- Плавный скролл для ссылок --------------------
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href').substring(1);
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
+        // -------------------- Инициализация --------------------
+        renderProducts();
+        updateCartUI();
     </script>
 
 </body>
