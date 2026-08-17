@@ -21,7 +21,6 @@
             align-items: center;
             overflow: hidden;
         }
-        /* частицы фона */
         body::before {
             content: '';
             position: fixed;
@@ -120,23 +119,7 @@
             border-radius: 50%;
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.2), 0 0 100px rgba(255, 215, 0, 0.05);
         }
-        .arrow {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 3.5rem;
-            color: #ffd700;
-            filter: drop-shadow(0 0 15px rgba(255,215,0,0.8));
-            z-index: 10;
-            text-shadow: 0 0 20px #ffd700;
-            line-height: 1;
-            pointer-events: none;
-        }
-        .arrow::before {
-            content: '▼';
-            display: block;
-        }
+        /* Стрелка теперь рисуется на канвасе, стиль не нужен */
 
         .controls {
             display: flex;
@@ -262,7 +245,6 @@
         <div class="game-area">
             <div class="wheel-wrapper">
                 <canvas id="wheelCanvas" width="600" height="600"></canvas>
-                <div class="arrow"></div>
             </div>
 
             <div class="controls">
@@ -285,16 +267,16 @@
 
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script>
-        (function(){
-            // ---------- Конфигурация секторов ----------
+        (function() {
+            // ---------- Конфигурация секторов (новые веса: x2 = 50%) ----------
             const sectors = [
-                { label: 'x0',   multiplier: 0,  weight: 40, color: '#2a2a3a' },
-                { label: 'x2',   multiplier: 2,  weight: 30, color: '#3a5a7a' },
-                { label: 'x3',   multiplier: 3,  weight: 15, color: '#4a8a5a' },
+                { label: 'x0',   multiplier: 0,  weight: 20, color: '#2a2a3a' },
+                { label: 'x2',   multiplier: 2,  weight: 50, color: '#3a7a5a' },
+                { label: 'x3',   multiplier: 3,  weight: 12, color: '#4a8a5a' },
                 { label: 'x5',   multiplier: 5,  weight: 8,  color: '#a87a3a' },
                 { label: 'x10',  multiplier: 10, weight: 5,  color: '#a05a6a' },
-                { label: 'x20',  multiplier: 20, weight: 2,  color: '#7a3a8a' },
-                { label: 'x50',  multiplier: 50, weight: 1,  color: '#d4af37' }
+                { label: 'x20',  multiplier: 20, weight: 3,  color: '#7a3a8a' },
+                { label: 'x50',  multiplier: 50, weight: 2,  color: '#d4af37' }
             ];
 
             const totalWeight = sectors.reduce((sum, s) => sum + s.weight, 0);
@@ -315,7 +297,7 @@
 
             // ---------- Состояние ----------
             let balance = 10000;
-            let currentAngle = 0;
+            let currentAngle = 0;          // угол поворота стрелки (в радианах)
             let isSpinning = false;
             let animationId = null;
 
@@ -325,21 +307,14 @@
             const spinBtn = document.getElementById('spinBtn');
             const resultText = document.getElementById('resultText');
 
-            // ---------- Отрисовка колеса ----------
-            function drawWheel(rotation) {
+            // ---------- Отрисовка статичного колеса ----------
+            function drawWheel() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.shadowColor = 'rgba(255,215,0,0.15)';
                 ctx.shadowBlur = 30;
 
-                const angles = sectorAngles.map(s => ({
-                    start: s.start + rotation,
-                    end: s.end + rotation,
-                    color: s.color,
-                    label: s.label,
-                    multiplier: s.multiplier
-                }));
-
-                angles.forEach(seg => {
+                // Рисуем сектора без поворота (всегда start/end как заданы)
+                sectorAngles.forEach(seg => {
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, seg.start, seg.end);
@@ -352,6 +327,7 @@
                     ctx.stroke();
                     ctx.shadowBlur = 30;
 
+                    // Текст (только множитель)
                     const midAngle = (seg.start + seg.end) / 2;
                     const textRadius = radius * 0.7;
                     const x = centerX + Math.cos(midAngle) * textRadius;
@@ -369,6 +345,7 @@
                     ctx.restore();
                 });
 
+                // Внешний обод
                 ctx.shadowBlur = 0;
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
@@ -378,6 +355,7 @@
                 ctx.shadowBlur = 30;
                 ctx.shadowColor = 'rgba(255,215,0,0.1)';
 
+                // Центр
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
                 ctx.fillStyle = '#ffd700';
@@ -387,20 +365,56 @@
                 ctx.shadowBlur = 0;
             }
 
-            // ---------- Получение сектора по углу (стрелка сверху) ----------
-            function getSectorAtAngle(rotation) {
-                const pointerAngle = -Math.PI / 2;
-                let raw = (pointerAngle - rotation) % (2 * Math.PI);
+            // ---------- Отрисовка стрелки (повёрнута на угол) ----------
+            function drawArrow(angle) {
+                // Стрелка — это треугольник, указывающий вверх (в сторону -PI/2)
+                const arrowLength = radius * 0.22;
+                const baseWidth = 18;
+                const tipX = centerX;
+                const tipY = centerY - radius - 6; // чуть выше обода
+
+                // Поворачиваем всю стрелку вокруг центра
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle);
+                ctx.translate(-centerX, -centerY);
+
+                // Рисуем треугольник (остриё вверх)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY - radius - 6); // остриё
+                ctx.lineTo(centerX - baseWidth/2, centerY - radius + arrowLength);
+                ctx.lineTo(centerX + baseWidth/2, centerY - radius + arrowLength);
+                ctx.closePath();
+
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowColor = 'rgba(255,215,0,0.9)';
+                ctx.shadowBlur = 25;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#ffaa00';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            // ---------- Получение сектора по углу стрелки ----------
+            function getSectorAtAngle(angle) {
+                // Стрелка изначально направлена вверх (-PI/2), после поворота на angle её направление: -PI/2 + angle
+                let pointer = -Math.PI / 2 + angle;
+                // Нормализуем в [0, 2PI)
+                let raw = pointer % (2 * Math.PI);
                 if (raw < 0) raw += 2 * Math.PI;
                 for (let s of sectorAngles) {
                     if (raw >= s.start && raw < s.end) {
                         return s;
                     }
                 }
+                // fallback
                 return sectorAngles[0];
             }
 
-            // ---------- Анимация вращения (ИСПРАВЛЕННАЯ) ----------
+            // ---------- Анимация вращения стрелки (7 секунд) ----------
             function startSpin() {
                 if (isSpinning) return;
                 const bet = parseInt(betInput.value);
@@ -419,25 +433,28 @@
 
                 isSpinning = true;
                 spinBtn.disabled = true;
-                resultText.innerHTML = '🌀 Колесо крутится... 20 секунд';
+                resultText.innerHTML = '🌀 Стрелка крутится... 7 секунд';
 
-                // Параметры вращения
-                const duration = 20000; // мс
+                const duration = 7000; // 7 секунд
                 const startTime = performance.now();
-                // Начальная скорость (рад/с) – подбираем так, чтобы было визуально красиво
-                const initialSpeed = 8 + Math.random() * 4; // 8-12 рад/с
-                // Добавим случайный доворот (несколько оборотов)
-                const extraRotation = Math.random() * 6 * Math.PI;
-                let angle = currentAngle + extraRotation;
+                // Начальная скорость (рад/с) – чтобы было визуально красиво
+                const initialSpeed = 8 + Math.random() * 5; // 8-13 рад/с
+                // Добавим случайное количество полных оборотов (5-10)
+                const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
+                let angle = currentAngle + extraRotations;
                 let prevTimestamp = startTime;
 
                 function animate(timestamp) {
                     const elapsed = timestamp - startTime;
                     if (elapsed >= duration) {
-                        // Остановка
-                        angle += initialSpeed * (duration / 1000) - 0.5 * (initialSpeed / (duration / 1000)) * (duration / 1000) * (duration / 1000);
+                        // Остановка: финальный угол с учётом замедления
+                        const totalAngle = initialSpeed * (duration / 1000) - 0.5 * (initialSpeed / (duration / 1000)) * (duration / 1000) * (duration / 1000);
+                        angle += totalAngle;
                         currentAngle = angle;
-                        drawWheel(currentAngle);
+                        // Перерисовываем
+                        drawWheel();
+                        drawArrow(currentAngle);
+
                         // Определяем результат
                         const sector = getSectorAtAngle(currentAngle);
                         const multiplier = sector.multiplier;
@@ -457,17 +474,18 @@
                         return;
                     }
 
-                    // Вычисляем текущее время и dt
+                    // dt
                     const dt = Math.min(32, timestamp - prevTimestamp);
                     prevTimestamp = timestamp;
 
-                    // Линейное замедление: скорость снижается от initialSpeed до 0 за duration
+                    // Линейное замедление
                     const progress = elapsed / duration;
-                    const speed = initialSpeed * (1 - progress); // рад/с
+                    const speed = initialSpeed * (1 - progress);
                     angle += speed * (dt / 1000);
 
                     currentAngle = angle;
-                    drawWheel(currentAngle);
+                    drawWheel();
+                    drawArrow(currentAngle);
 
                     animationId = requestAnimationFrame(animate);
                 }
@@ -482,7 +500,8 @@
 
             // ---------- Инициализация ----------
             function init() {
-                drawWheel(0);
+                drawWheel();
+                drawArrow(0);
                 updateBalance();
                 spinBtn.addEventListener('click', startSpin);
                 betInput.addEventListener('change', function() {
@@ -493,8 +512,10 @@
 
             init();
 
-            // Перерисовка при изменении размера окна (не критично)
-            window.addEventListener('resize', () => { drawWheel(currentAngle); });
+            window.addEventListener('resize', () => {
+                drawWheel();
+                drawArrow(currentAngle);
+            });
         })();
     </script>
 </body>
