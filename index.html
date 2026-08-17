@@ -295,15 +295,13 @@
 
             let state = {
                 balance: 10000,
-                currentAngle: 0,          // всегда нормализованный [0, 2PI)
+                currentAngle: 0,          // сырой угол (может быть > 2π)
                 isSpinning: false,
                 selectedMultiplier: 2,
                 animationId: null,
-                // Геометрия (пересчитывается при resize)
                 centerX: 300,
                 centerY: 300,
                 radius: 260,
-                // Сектора (пересчитываются при смене множителя)
                 sectors: [] // массив { start, end, type, label, color }
             };
 
@@ -323,26 +321,20 @@
 
             // ---------- Расчёт секторов ----------
             function buildSectors(mult) {
-                // Угол сектора множителя: 2π / mult  (чем больше mult, тем меньше сектор)
                 const multAngle = (2 * Math.PI) / mult;
                 const zeroAngle = 2 * Math.PI - multAngle;
-                // Размещаем сектор x0 сверху: центр в -π/2
                 const centerZero = -Math.PI / 2;
                 const zeroStart = centerZero - zeroAngle / 2;
                 const zeroEnd = centerZero + zeroAngle / 2;
-                // Сектор множителя – всё остальное (от zeroEnd до zeroStart + 2π)
                 const multStart = zeroEnd;
                 let multEnd = zeroStart + 2 * Math.PI;
-                // Нормализуем границы, чтобы они были в [0, 2π) для удобства
-                // Но для отрисовки мы будем использовать их как есть (возможны отрицательные)
-                // Для определения сектора будем использовать нормализованные версии.
                 return [
                     { start: zeroStart, end: zeroEnd, type: 'zero', label: 'x0', color: '#2a2a3a' },
                     { start: multStart, end: multEnd, type: 'mult', label: 'x' + mult, color: '#3a7a5a' }
                 ];
             }
 
-            // ---------- Обновление геометрии при ресайзе ----------
+            // ---------- Обновление геометрии ----------
             function updateGeometry() {
                 const rect = canvas.getBoundingClientRect();
                 const w = canvas.width;
@@ -354,12 +346,13 @@
 
             // ---------- Отрисовка ----------
             function drawWheel() {
-                const { centerX, centerY, radius, sectors, currentAngle } = state;
+                const { centerX, centerY, radius, sectors } = state;
+                const angle = normalizeAngle(state.currentAngle); // нормализованный для отрисовки
+
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.shadowColor = 'rgba(255,215,0,0.15)';
                 ctx.shadowBlur = 30;
 
-                // Рисуем сектора
                 sectors.forEach(seg => {
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
@@ -373,9 +366,7 @@
                     ctx.stroke();
                     ctx.shadowBlur = 30;
 
-                    // Текст – вычисляем середину угла
                     let mid = (seg.start + seg.end) / 2;
-                    // Нормализуем mid для расчёта координат
                     let midNorm = normalizeAngle(mid);
                     const textR = radius * 0.7;
                     const x = centerX + Math.cos(midNorm) * textR;
@@ -383,8 +374,6 @@
 
                     ctx.save();
                     ctx.translate(x, y);
-                    // Поворачиваем так, чтобы текст всегда был читаем:
-                    // если угол в нижней половине (от π/2 до 3π/2) – переворачиваем на π
                     let rot = midNorm;
                     if (rot > Math.PI/2 && rot < 3*Math.PI/2) rot += Math.PI;
                     ctx.rotate(rot);
@@ -398,7 +387,6 @@
                     ctx.restore();
                 });
 
-                // Обод
                 ctx.shadowBlur = 0;
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
@@ -408,7 +396,6 @@
                 ctx.shadowBlur = 30;
                 ctx.shadowColor = 'rgba(255,215,0,0.1)';
 
-                // Центр
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
                 ctx.fillStyle = '#ffd700';
@@ -417,8 +404,8 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Стрелка
-                drawArrow(currentAngle);
+                // стрелка рисуется с нормализованным углом
+                drawArrow(angle);
             }
 
             function drawArrow(angle) {
@@ -458,17 +445,14 @@
                 ctx.restore();
             }
 
-            // ---------- Определение сектора по углу ----------
-            function getSector(angle) {
-                const a = normalizeAngle(angle);
-                // Берём нормализованные границы x0
+            // ---------- Определение сектора по сырому углу ----------
+            function getSector(rawAngle) {
+                const a = normalizeAngle(rawAngle);
                 const zeroStartNorm = normalizeAngle(state.sectors[0].start);
                 const zeroEndNorm = normalizeAngle(state.sectors[0].end);
-                // Проверяем попадание в x0
                 if (zeroStartNorm < zeroEndNorm) {
                     if (a >= zeroStartNorm && a <= zeroEndNorm) return 'zero';
                 } else {
-                    // пересекает 0
                     if (a >= zeroStartNorm || a <= zeroEndNorm) return 'zero';
                 }
                 return 'mult';
@@ -479,8 +463,6 @@
                 if (state.isSpinning) return;
                 state.selectedMultiplier = mult;
                 state.sectors = buildSectors(mult);
-                // Нормализуем текущий угол (на всякий случай)
-                state.currentAngle = normalizeAngle(state.currentAngle);
                 drawWheel();
                 updatePotentialWin();
                 multiplierBtns.forEach(btn => {
@@ -500,7 +482,7 @@
                 balanceDisplay.textContent = state.balance;
             }
 
-            // ---------- Вращение (анимация) ----------
+            // ---------- Вращение ----------
             function startSpin() {
                 if (state.isSpinning) return;
                 const bet = parseInt(betInput.value);
@@ -513,13 +495,11 @@
                     return;
                 }
 
-                // Отменяем предыдущую анимацию, если есть
                 if (state.animationId) {
                     cancelAnimationFrame(state.animationId);
                     state.animationId = null;
                 }
 
-                // Списываем ставку
                 state.balance -= bet;
                 updateBalance();
 
@@ -529,18 +509,17 @@
 
                 const duration = 7000;
                 const startTime = performance.now();
-                const initialSpeed = 8 + Math.random() * 5; // 8-13 рад/с
+                const initialSpeed = 8 + Math.random() * 5;
                 const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
-                let angle = state.currentAngle + extraRotations;
+                let angle = state.currentAngle + extraRotations; // сырой
                 let prevTimestamp = startTime;
 
                 function animate(timestamp) {
                     const elapsed = timestamp - startTime;
                     if (elapsed >= duration) {
-                        // Фиксируем финальный угол
-                        state.currentAngle = normalizeAngle(angle);
+                        // фиксируем сырой угол (без нормализации)
+                        state.currentAngle = angle;
                         drawWheel();
-                        // Определяем результат
                         const sector = getSector(state.currentAngle);
                         let msg = '';
                         if (sector === 'zero') {
@@ -566,7 +545,7 @@
                     const speed = initialSpeed * (1 - progress);
                     angle += speed * (dt / 1000);
 
-                    state.currentAngle = normalizeAngle(angle);
+                    state.currentAngle = angle; // сохраняем сырой
                     drawWheel();
 
                     state.animationId = requestAnimationFrame(animate);
@@ -577,12 +556,6 @@
 
             // ---------- Инициализация ----------
             function init() {
-                // Устанавливаем размеры canvas под реальный DPI
-                const rect = canvas.getBoundingClientRect();
-                const dpr = window.devicePixelRatio || 1;
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-                // но для простоты используем фикс 600x600
                 canvas.width = 600;
                 canvas.height = 600;
                 updateGeometry();
@@ -593,7 +566,6 @@
                 updateBalance();
                 updatePotentialWin();
 
-                // Обработчики
                 multiplierBtns.forEach(btn => {
                     btn.addEventListener('click', function() {
                         const mult = parseInt(this.dataset.mult);
@@ -615,13 +587,7 @@
 
                 spinBtn.addEventListener('click', startSpin);
 
-                // Ресайз – пересчитываем геометрию и перерисовываем
                 window.addEventListener('resize', () => {
-                    // Меняем размер canvas под новые размеры контейнера
-                    const rect = canvas.getBoundingClientRect();
-                    const dpr = window.devicePixelRatio || 1;
-                    // Можно изменить только ширину/высоту, но для простоты оставим фикс 600
-                    // Но радиус и центры обновим
                     updateGeometry();
                     drawWheel();
                 });
