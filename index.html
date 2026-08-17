@@ -21,7 +21,7 @@
             align-items: center;
             overflow: hidden;
         }
-        /* частицы фона (упрощённо) */
+        /* частицы фона */
         body::before {
             content: '';
             position: fixed;
@@ -62,7 +62,6 @@
             position: relative;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -103,7 +102,6 @@
             color: #ffd700;
         }
 
-        /* Основная область */
         .game-area {
             display: flex;
             flex-direction: column;
@@ -122,7 +120,6 @@
             border-radius: 50%;
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.2), 0 0 100px rgba(255, 215, 0, 0.05);
         }
-        /* Стрелка */
         .arrow {
             position: absolute;
             top: -12px;
@@ -141,7 +138,6 @@
             display: block;
         }
 
-        /* Панель управления */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -229,9 +225,6 @@
             color: #ff4466;
             font-weight: 700;
         }
-        .result-box .multiplier {
-            color: #ffaa00;
-        }
 
         .footer {
             margin-top: 25px;
@@ -304,7 +297,6 @@
                 { label: 'x50',  multiplier: 50, weight: 1,  color: '#d4af37' }
             ];
 
-            // Расчёт угловых интервалов
             const totalWeight = sectors.reduce((sum, s) => sum + s.weight, 0);
             let startAngle = 0;
             const sectorAngles = sectors.map(s => {
@@ -323,11 +315,9 @@
 
             // ---------- Состояние ----------
             let balance = 10000;
-            let currentAngle = 0;           // текущий поворот колеса (рад)
+            let currentAngle = 0;
             let isSpinning = false;
             let animationId = null;
-            let spinStartTime = 0;
-            const SPIN_DURATION = 20000;    // 20 секунд
 
             // DOM
             const balanceDisplay = document.getElementById('balanceDisplay');
@@ -338,11 +328,16 @@
             // ---------- Отрисовка колеса ----------
             function drawWheel(rotation) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                // Тень
                 ctx.shadowColor = 'rgba(255,215,0,0.15)';
                 ctx.shadowBlur = 30;
 
-                const angles = sectorAngles.map(s => ({ start: s.start + rotation, end: s.end + rotation, color: s.color, label: s.label, multiplier: s.multiplier }));
+                const angles = sectorAngles.map(s => ({
+                    start: s.start + rotation,
+                    end: s.end + rotation,
+                    color: s.color,
+                    label: s.label,
+                    multiplier: s.multiplier
+                }));
 
                 angles.forEach(seg => {
                     ctx.beginPath();
@@ -357,7 +352,6 @@
                     ctx.stroke();
                     ctx.shadowBlur = 30;
 
-                    // Текст
                     const midAngle = (seg.start + seg.end) / 2;
                     const textRadius = radius * 0.7;
                     const x = centerX + Math.cos(midAngle) * textRadius;
@@ -375,7 +369,6 @@
                     ctx.restore();
                 });
 
-                // Внешний обод
                 ctx.shadowBlur = 0;
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
@@ -385,36 +378,29 @@
                 ctx.shadowBlur = 30;
                 ctx.shadowColor = 'rgba(255,215,0,0.1)';
 
-                // Центр
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
                 ctx.fillStyle = '#ffd700';
                 ctx.shadowBlur = 40;
                 ctx.shadowColor = 'rgba(255,215,0,0.6)';
                 ctx.fill();
-
                 ctx.shadowBlur = 0;
             }
 
-            // ---------- Получение сектора по углу (с учётом вращения) ----------
+            // ---------- Получение сектора по углу (стрелка сверху) ----------
             function getSectorAtAngle(rotation) {
-                // Стрелка сверху (угол -PI/2)
                 const pointerAngle = -Math.PI / 2;
-                // Угол на колесе, соответствующий стрелке: rotation + pointerAngle? 
-                // Так как мы рисуем сектора от rotation, то фактический угол в пространстве сектора = (pointerAngle - rotation) normalized
                 let raw = (pointerAngle - rotation) % (2 * Math.PI);
                 if (raw < 0) raw += 2 * Math.PI;
-                // Ищем сектор, содержащий raw
                 for (let s of sectorAngles) {
                     if (raw >= s.start && raw < s.end) {
                         return s;
                     }
                 }
-                // fallback (если из-за погрешности)
                 return sectorAngles[0];
             }
 
-            // ---------- Анимация вращения ----------
+            // ---------- Анимация вращения (ИСПРАВЛЕННАЯ) ----------
             function startSpin() {
                 if (isSpinning) return;
                 const bet = parseInt(betInput.value);
@@ -431,68 +417,62 @@
                 balance -= bet;
                 updateBalance();
 
-                // Блокируем кнопку
                 isSpinning = true;
                 spinBtn.disabled = true;
-                resultText.innerHTML = '🌀 Колесо крутится... подождите 20 секунд';
+                resultText.innerHTML = '🌀 Колесо крутится... 20 секунд';
 
-                // Случайная начальная скорость (рад/сек) + несколько оборотов
-                const initialSpeed = 6 + Math.random() * 4; // 6-10 рад/с
-                // Рассчитываем замедление так, чтобы через 20 сек скорость стала 0
-                const deceleration = initialSpeed / (SPIN_DURATION / 1000); // рад/с^2
-
-                let speed = initialSpeed;
-                let angle = currentAngle;
+                // Параметры вращения
+                const duration = 20000; // мс
                 const startTime = performance.now();
-
-                // Дополнительный случайный поворот (до 5 оборотов)
-                const extraRotation = Math.random() * 10 * Math.PI; 
-                angle += extraRotation;
+                // Начальная скорость (рад/с) – подбираем так, чтобы было визуально красиво
+                const initialSpeed = 8 + Math.random() * 4; // 8-12 рад/с
+                // Добавим случайный доворот (несколько оборотов)
+                const extraRotation = Math.random() * 6 * Math.PI;
+                let angle = currentAngle + extraRotation;
+                let prevTimestamp = startTime;
 
                 function animate(timestamp) {
-                    const elapsed = timestamp - startTime; // мс
-                    if (elapsed >= SPIN_DURATION) {
+                    const elapsed = timestamp - startTime;
+                    if (elapsed >= duration) {
                         // Остановка
-                        angle += speed * (SPIN_DURATION / 1000 - (SPIN_DURATION / 1000) * (SPIN_DURATION / 1000) / 2); // интеграл
-                        speed = 0;
+                        angle += initialSpeed * (duration / 1000) - 0.5 * (initialSpeed / (duration / 1000)) * (duration / 1000) * (duration / 1000);
                         currentAngle = angle;
                         drawWheel(currentAngle);
                         // Определяем результат
                         const sector = getSectorAtAngle(currentAngle);
                         const multiplier = sector.multiplier;
                         const winAmount = bet * multiplier;
-                        let message = '';
+                        let msg = '';
                         if (multiplier === 0) {
-                            message = `💔 Проигрыш! Выпал ${sector.label}. Ставка сгорела.`;
-                            resultText.innerHTML = `<span class="lose">${message}</span>`;
+                            msg = `💔 Проигрыш! Выпал ${sector.label}. Ставка сгорела.`;
+                            resultText.innerHTML = `<span class="lose">${msg}</span>`;
                         } else {
                             balance += winAmount;
                             updateBalance();
-                            message = `🎉 Выигрыш! x${multiplier} = ${winAmount} денег! (сектор ${sector.label})`;
-                            resultText.innerHTML = `<span class="win">${message}</span>`;
+                            msg = `🎉 Выигрыш! x${multiplier} = ${winAmount} денег! (сектор ${sector.label})`;
+                            resultText.innerHTML = `<span class="win">${msg}</span>`;
                         }
                         isSpinning = false;
                         spinBtn.disabled = false;
                         return;
                     }
 
-                    // Обновляем скорость и угол (физика с замедлением)
-                    const dt = Math.min(16, elapsed - (animation.prevTime || startTime)); // примерный dt
-                    animation.prevTime = elapsed;
-                    // Применяем замедление
-                    speed -= deceleration * (dt / 1000);
-                    if (speed < 0) speed = 0;
+                    // Вычисляем текущее время и dt
+                    const dt = Math.min(32, timestamp - prevTimestamp);
+                    prevTimestamp = timestamp;
+
+                    // Линейное замедление: скорость снижается от initialSpeed до 0 за duration
+                    const progress = elapsed / duration;
+                    const speed = initialSpeed * (1 - progress); // рад/с
                     angle += speed * (dt / 1000);
 
-                    // Сохраняем текущий угол
                     currentAngle = angle;
                     drawWheel(currentAngle);
-                    requestAnimationFrame(animate);
+
+                    animationId = requestAnimationFrame(animate);
                 }
 
                 animationId = requestAnimationFrame(animate);
-                // Сохраняем prevTime
-                animate.prevTime = null;
             }
 
             // ---------- Обновление баланса ----------
@@ -505,7 +485,6 @@
                 drawWheel(0);
                 updateBalance();
                 spinBtn.addEventListener('click', startSpin);
-                // Защита от ввода отрицательных и текста
                 betInput.addEventListener('change', function() {
                     let val = parseInt(this.value);
                     if (isNaN(val) || val < 1) this.value = 1;
@@ -514,8 +493,7 @@
 
             init();
 
-            // Дополнительно: перерисовка при изменении размера окна (не требуется, так как canvas фиксирован)
-            // Обработка ошибок
+            // Перерисовка при изменении размера окна (не критично)
             window.addEventListener('resize', () => { drawWheel(currentAngle); });
         })();
     </script>
