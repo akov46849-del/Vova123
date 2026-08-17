@@ -110,7 +110,7 @@
             position: relative;
             width: 100%;
             max-width: 550px;
-            margin: 0 auto 30px;
+            margin: 0 auto 20px;
         }
         canvas#wheelCanvas {
             width: 100%;
@@ -119,7 +119,39 @@
             border-radius: 50%;
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.2), 0 0 100px rgba(255, 215, 0, 0.05);
         }
-        /* Стрелка теперь рисуется на канвасе, стиль не нужен */
+
+        /* Панель выбора множителя */
+        .multiplier-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0 20px;
+            width: 100%;
+        }
+        .multiplier-btn {
+            background: transparent;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            color: #aaa;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+        .multiplier-btn:hover {
+            border-color: rgba(255, 215, 0, 0.5);
+            color: #fff;
+        }
+        .multiplier-btn.active {
+            border-color: #ffd700;
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+        }
 
         .controls {
             display: flex;
@@ -188,9 +220,9 @@
 
         .result-box {
             text-align: center;
-            min-height: 60px;
-            font-size: 1.2rem;
-            padding: 10px;
+            min-height: 70px;
+            font-size: 1.1rem;
+            padding: 12px;
             color: #ddd;
             font-family: 'Segoe UI', sans-serif;
             background: rgba(255, 215, 0, 0.03);
@@ -207,6 +239,9 @@
         .result-box .lose {
             color: #ff4466;
             font-weight: 700;
+        }
+        .result-box .info {
+            color: #88aaff;
         }
 
         .footer {
@@ -229,6 +264,7 @@
             .controls { gap: 12px; }
             .spin-btn { padding: 10px 28px; font-size: 1rem; }
             .bet-group input { width: 60px; font-size: 1rem; }
+            .multiplier-btn { font-size: 0.8rem; padding: 6px 14px; }
         }
     </style>
 </head>
@@ -247,6 +283,16 @@
                 <canvas id="wheelCanvas" width="600" height="600"></canvas>
             </div>
 
+            <!-- Выбор множителя -->
+            <div class="multiplier-selector" id="multiplierSelector">
+                <button class="multiplier-btn active" data-mult="2">x2</button>
+                <button class="multiplier-btn" data-mult="3">x3</button>
+                <button class="multiplier-btn" data-mult="5">x5</button>
+                <button class="multiplier-btn" data-mult="10">x10</button>
+                <button class="multiplier-btn" data-mult="20">x20</button>
+                <button class="multiplier-btn" data-mult="50">x50</button>
+            </div>
+
             <div class="controls">
                 <div class="bet-group">
                     <label><i class="fas fa-gem"></i> Ставка</label>
@@ -256,7 +302,7 @@
             </div>
 
             <div class="result-box" id="resultBox">
-                <span id="resultText">Нажми «Крутить», чтобы начать</span>
+                <span id="resultText">Выберите множитель и нажмите «Крутить»</span>
             </div>
         </div>
 
@@ -268,82 +314,116 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script>
         (function() {
-            // ---------- Конфигурация секторов (новые веса: x2 = 50%) ----------
-            const sectors = [
-                { label: 'x0',   multiplier: 0,  weight: 20, color: '#2a2a3a' },
-                { label: 'x2',   multiplier: 2,  weight: 50, color: '#3a7a5a' },
-                { label: 'x3',   multiplier: 3,  weight: 12, color: '#4a8a5a' },
-                { label: 'x5',   multiplier: 5,  weight: 8,  color: '#a87a3a' },
-                { label: 'x10',  multiplier: 10, weight: 5,  color: '#a05a6a' },
-                { label: 'x20',  multiplier: 20, weight: 3,  color: '#7a3a8a' },
-                { label: 'x50',  multiplier: 50, weight: 2,  color: '#d4af37' }
-            ];
-
-            const totalWeight = sectors.reduce((sum, s) => sum + s.weight, 0);
-            let startAngle = 0;
-            const sectorAngles = sectors.map(s => {
-                const angle = (s.weight / totalWeight) * 2 * Math.PI;
-                const obj = { ...s, start: startAngle, end: startAngle + angle };
-                startAngle += angle;
-                return obj;
-            });
-
-            // ---------- Canvas ----------
+            // ---------- Конфигурация ----------
             const canvas = document.getElementById('wheelCanvas');
             const ctx = canvas.getContext('2d');
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = Math.min(canvas.width, canvas.height) * 0.42;
 
-            // ---------- Состояние ----------
+            // Состояние
             let balance = 10000;
-            let currentAngle = 0;          // угол поворота стрелки (в радианах)
+            let currentAngle = 0;          // угол поворота стрелки
             let isSpinning = false;
             let animationId = null;
+
+            // Текущий выбранный множитель
+            let selectedMultiplier = 2;
+            // Угол сектора множителя (рассчитывается)
+            let multiplierAngle = 0;       // в радианах
+            let zeroAngle = 0;             // угол сектора x0
 
             // DOM
             const balanceDisplay = document.getElementById('balanceDisplay');
             const betInput = document.getElementById('betInput');
             const spinBtn = document.getElementById('spinBtn');
             const resultText = document.getElementById('resultText');
+            const multiplierBtns = document.querySelectorAll('.multiplier-btn');
 
-            // ---------- Отрисовка статичного колеса ----------
+            // ---------- Вспомогательные функции ----------
+            function normalizeAngle(angle) {
+                angle = angle % (2 * Math.PI);
+                if (angle < 0) angle += 2 * Math.PI;
+                return angle;
+            }
+
+            // ---------- Расчёт углов секторов ----------
+            function updateAngles(mult) {
+                // Угол множителя: 2*PI / mult (чем больше mult, тем меньше угол)
+                multiplierAngle = (2 * Math.PI) / mult;
+                zeroAngle = 2 * Math.PI - multiplierAngle;
+            }
+
+            // ---------- Отрисовка колеса ----------
             function drawWheel() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.shadowColor = 'rgba(255,215,0,0.15)';
                 ctx.shadowBlur = 30;
 
-                // Рисуем сектора без поворота (всегда start/end как заданы)
-                sectorAngles.forEach(seg => {
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.arc(centerX, centerY, radius, seg.start, seg.end);
-                    ctx.closePath();
-                    ctx.fillStyle = seg.color;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = 'rgba(255,215,0,0.2)';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                    ctx.shadowBlur = 30;
+                // Поворачиваем весь контекст так, чтобы x0 был сверху
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(-Math.PI / 2);
+                ctx.translate(-centerX, -centerY);
 
-                    // Текст (только множитель)
-                    const midAngle = (seg.start + seg.end) / 2;
-                    const textRadius = radius * 0.7;
-                    const x = centerX + Math.cos(midAngle) * textRadius;
-                    const y = centerY + Math.sin(midAngle) * textRadius;
-                    ctx.save();
-                    ctx.translate(x, y);
-                    ctx.rotate(midAngle + (midAngle > Math.PI/2 ? Math.PI : 0));
-                    ctx.font = 'bold 18px Orbitron, sans-serif';
-                    ctx.fillStyle = '#fff';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(seg.label, 0, 0);
-                    ctx.restore();
-                });
+                // Сектор x0 (от 0 до zeroAngle)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, 0, zeroAngle);
+                ctx.closePath();
+                ctx.fillStyle = '#2a2a3a';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255,215,0,0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.shadowBlur = 30;
+                // Текст x0
+                const midZero = zeroAngle / 2;
+                const textR = radius * 0.7;
+                const x0 = centerX + Math.cos(midZero) * textR;
+                const y0 = centerY + Math.sin(midZero) * textR;
+                ctx.save();
+                ctx.translate(x0, y0);
+                ctx.rotate(midZero + (midZero > Math.PI/2 ? Math.PI : 0));
+                ctx.font = 'bold 20px Orbitron, sans-serif';
+                ctx.fillStyle = '#fff';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('x0', 0, 0);
+                ctx.restore();
+
+                // Сектор множителя (от zeroAngle до 2*PI)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, zeroAngle, 2 * Math.PI);
+                ctx.closePath();
+                ctx.fillStyle = '#3a7a5a';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255,215,0,0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.shadowBlur = 30;
+                // Текст множителя
+                const midMult = (zeroAngle + 2 * Math.PI) / 2;
+                const xm = centerX + Math.cos(midMult) * textR;
+                const ym = centerY + Math.sin(midMult) * textR;
+                ctx.save();
+                ctx.translate(xm, ym);
+                ctx.rotate(midMult + (midMult > Math.PI/2 ? Math.PI : 0));
+                ctx.font = 'bold 20px Orbitron, sans-serif';
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('x' + selectedMultiplier, 0, 0);
+                ctx.restore();
+
+                ctx.restore(); // вернуть поворот
 
                 // Внешний обод
                 ctx.shadowBlur = 0;
@@ -365,23 +445,19 @@
                 ctx.shadowBlur = 0;
             }
 
-            // ---------- Отрисовка стрелки (повёрнута на угол) ----------
+            // ---------- Отрисовка стрелки ----------
             function drawArrow(angle) {
-                // Стрелка — это треугольник, указывающий вверх (в сторону -PI/2)
                 const arrowLength = radius * 0.22;
                 const baseWidth = 18;
-                const tipX = centerX;
-                const tipY = centerY - radius - 6; // чуть выше обода
+                const tipOffset = 6; // чтобы остриё было чуть выше обода
 
-                // Поворачиваем всю стрелку вокруг центра
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(angle);
                 ctx.translate(-centerX, -centerY);
 
-                // Рисуем треугольник (остриё вверх)
                 ctx.beginPath();
-                ctx.moveTo(centerX, centerY - radius - 6); // остриё
+                ctx.moveTo(centerX, centerY - radius - tipOffset);
                 ctx.lineTo(centerX - baseWidth/2, centerY - radius + arrowLength);
                 ctx.lineTo(centerX + baseWidth/2, centerY - radius + arrowLength);
                 ctx.closePath();
@@ -398,23 +474,53 @@
                 ctx.restore();
             }
 
-            // ---------- Получение сектора по углу стрелки ----------
-            function getSectorAtAngle(angle) {
-                // Стрелка изначально направлена вверх (-PI/2), после поворота на angle её направление: -PI/2 + angle
-                let pointer = -Math.PI / 2 + angle;
-                // Нормализуем в [0, 2PI)
-                let raw = pointer % (2 * Math.PI);
-                if (raw < 0) raw += 2 * Math.PI;
-                for (let s of sectorAngles) {
-                    if (raw >= s.start && raw < s.end) {
-                        return s;
-                    }
+            // ---------- Определение сектора по углу стрелки ----------
+            function getSector(angle) {
+                // Приводим угол к [0, 2PI)
+                let raw = normalizeAngle(angle);
+                // Так как мы рисуем сектора с поворотом -PI/2, но в логике мы используем исходные углы,
+                // то сектор x0 от 0 до zeroAngle, множитель от zeroAngle до 2*PI.
+                // Стрелка без поворота указывает вверх, что соответствует углу 0 в исходных координатах.
+                // При повороте стрелки на angle, она указывает на угол angle в исходных координатах.
+                // Поэтому просто сравниваем raw с zeroAngle.
+                if (raw < zeroAngle) {
+                    return 'zero';
+                } else {
+                    return 'mult';
                 }
-                // fallback
-                return sectorAngles[0];
             }
 
-            // ---------- Анимация вращения стрелки (7 секунд) ----------
+            // ---------- Обновление интерфейса после выбора множителя ----------
+            function updateMultiplier(mult) {
+                selectedMultiplier = mult;
+                updateAngles(mult);
+                drawWheel();
+                drawArrow(currentAngle);
+                // Обновляем потенциальный выигрыш
+                updatePotentialWin();
+                // Активная кнопка
+                multiplierBtns.forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.mult) === mult);
+                });
+            }
+
+            // ---------- Потенциальный выигрыш ----------
+            function updatePotentialWin() {
+                const bet = parseInt(betInput.value) || 0;
+                const win = bet * selectedMultiplier;
+                const msg = `Ставка ${bet} × ${selectedMultiplier} = <span class="win">${win}</span> (если выпадет x${selectedMultiplier})`;
+                // Если не крутится, обновляем результат
+                if (!isSpinning) {
+                    resultText.innerHTML = msg;
+                }
+            }
+
+            // ---------- Обновление баланса ----------
+            function updateBalance() {
+                balanceDisplay.textContent = balance;
+            }
+
+            // ---------- Вращение (анимация) ----------
             function startSpin() {
                 if (isSpinning) return;
                 const bet = parseInt(betInput.value);
@@ -435,11 +541,9 @@
                 spinBtn.disabled = true;
                 resultText.innerHTML = '🌀 Стрелка крутится... 7 секунд';
 
-                const duration = 7000; // 7 секунд
+                const duration = 7000;
                 const startTime = performance.now();
-                // Начальная скорость (рад/с) – чтобы было визуально красиво
                 const initialSpeed = 8 + Math.random() * 5; // 8-13 рад/с
-                // Добавим случайное количество полных оборотов (5-10)
                 const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
                 let angle = currentAngle + extraRotations;
                 let prevTimestamp = startTime;
@@ -447,26 +551,24 @@
                 function animate(timestamp) {
                     const elapsed = timestamp - startTime;
                     if (elapsed >= duration) {
-                        // Остановка: финальный угол с учётом замедления
+                        // Финальный угол с учётом замедления
                         const totalAngle = initialSpeed * (duration / 1000) - 0.5 * (initialSpeed / (duration / 1000)) * (duration / 1000) * (duration / 1000);
                         angle += totalAngle;
                         currentAngle = angle;
-                        // Перерисовываем
                         drawWheel();
                         drawArrow(currentAngle);
 
                         // Определяем результат
-                        const sector = getSectorAtAngle(currentAngle);
-                        const multiplier = sector.multiplier;
-                        const winAmount = bet * multiplier;
+                        const sector = getSector(currentAngle);
                         let msg = '';
-                        if (multiplier === 0) {
-                            msg = `💔 Проигрыш! Выпал ${sector.label}. Ставка сгорела.`;
+                        if (sector === 'zero') {
+                            msg = `💔 Проигрыш! Выпал x0. Ставка сгорела.`;
                             resultText.innerHTML = `<span class="lose">${msg}</span>`;
                         } else {
+                            const winAmount = bet * selectedMultiplier;
                             balance += winAmount;
                             updateBalance();
-                            msg = `🎉 Выигрыш! x${multiplier} = ${winAmount} денег! (сектор ${sector.label})`;
+                            msg = `🎉 Выигрыш! x${selectedMultiplier} = ${winAmount} денег!`;
                             resultText.innerHTML = `<span class="win">${msg}</span>`;
                         }
                         isSpinning = false;
@@ -474,11 +576,9 @@
                         return;
                     }
 
-                    // dt
                     const dt = Math.min(32, timestamp - prevTimestamp);
                     prevTimestamp = timestamp;
 
-                    // Линейное замедление
                     const progress = elapsed / duration;
                     const speed = initialSpeed * (1 - progress);
                     angle += speed * (dt / 1000);
@@ -493,25 +593,38 @@
                 animationId = requestAnimationFrame(animate);
             }
 
-            // ---------- Обновление баланса ----------
-            function updateBalance() {
-                balanceDisplay.textContent = balance;
-            }
-
             // ---------- Инициализация ----------
             function init() {
-                drawWheel();
+                // Устанавливаем начальный множитель
+                updateMultiplier(2);
                 drawArrow(0);
                 updateBalance();
-                spinBtn.addEventListener('click', startSpin);
+                updatePotentialWin();
+
+                // Обработчики для кнопок множителя
+                multiplierBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (isSpinning) return;
+                        const mult = parseInt(this.dataset.mult);
+                        updateMultiplier(mult);
+                    });
+                });
+
+                // Обработчик для ставки (обновляем потенциальный выигрыш)
+                betInput.addEventListener('input', updatePotentialWin);
                 betInput.addEventListener('change', function() {
                     let val = parseInt(this.value);
                     if (isNaN(val) || val < 1) this.value = 1;
+                    updatePotentialWin();
                 });
+
+                // Кнопка "Крутить"
+                spinBtn.addEventListener('click', startSpin);
             }
 
             init();
 
+            // Перерисовка при изменении размера окна
             window.addEventListener('resize', () => {
                 drawWheel();
                 drawArrow(currentAngle);
