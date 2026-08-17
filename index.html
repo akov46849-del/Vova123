@@ -120,7 +120,6 @@
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.2), 0 0 100px rgba(255, 215, 0, 0.05);
         }
 
-        /* Панель выбора множителя */
         .multiplier-selector {
             display: flex;
             flex-wrap: wrap;
@@ -280,7 +279,6 @@
                 <canvas id="wheelCanvas" width="600" height="600"></canvas>
             </div>
 
-            <!-- Выбор множителя -->
             <div class="multiplier-selector" id="multiplierSelector">
                 <button class="multiplier-btn active" data-mult="2">x2</button>
                 <button class="multiplier-btn" data-mult="3">x3</button>
@@ -320,17 +318,13 @@
 
             // Состояние
             let balance = 10000;
-            let currentAngle = 0;          // угол стрелки (направление острия)
+            let currentAngle = 0;
             let isSpinning = false;
             let animationId = null;
 
-            // Текущий выбранный множитель
             let selectedMultiplier = 2;
-            // Углы секторов (в радианах)
-            let zeroStart = 0;    // начало сектора x0
-            let zeroEnd = 0;      // конец сектора x0
-            let multStart = 0;    // начало сектора множителя
-            let multEnd = 0;      // конец сектора множителя
+            let zeroStart = 0;
+            let zeroEnd = 0;
 
             // DOM
             const balanceDisplay = document.getElementById('balanceDisplay');
@@ -348,18 +342,12 @@
 
             // ---------- Расчёт углов секторов ----------
             function updateAngles(mult) {
-                // Угол сектора множителя = 2*PI / mult (чем больше mult, тем меньше сектор)
                 const multAngle = (2 * Math.PI) / mult;
                 const zeroAngle = 2 * Math.PI - multAngle;
-
-                // Располагаем сектор x0 сверху (центр в -PI/2)
+                // Центр сектора x0 наверху (-PI/2)
                 const centerZero = -Math.PI / 2;
                 zeroStart = centerZero - zeroAngle / 2;
                 zeroEnd = centerZero + zeroAngle / 2;
-
-                // Сектор множителя — всё остальное
-                multStart = zeroEnd;
-                multEnd = zeroStart + 2 * Math.PI; // с учётом wrap-around
             }
 
             // ---------- Отрисовка колеса ----------
@@ -368,10 +356,9 @@
                 ctx.shadowColor = 'rgba(255,215,0,0.15)';
                 ctx.shadowBlur = 30;
 
-                // Рисуем сектор x0
+                // Сектор x0
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
-                // Дуга от zeroStart до zeroEnd
                 ctx.arc(centerX, centerY, radius, zeroStart, zeroEnd);
                 ctx.closePath();
                 ctx.fillStyle = '#2a2a3a';
@@ -399,10 +386,11 @@
                 ctx.fillText('x0', 0, 0);
                 ctx.restore();
 
-                // Рисуем сектор множителя (от multStart до multEnd с учётом, что это может быть > 2*PI)
-                // Так как multEnd может быть больше 2*PI, разобьём на две дуги, если нужно
+                // Сектор множителя (от zeroEnd до zeroStart + 2PI)
+                const multStart = zeroEnd;
+                let multEnd = zeroStart + 2 * Math.PI;
                 if (multEnd > 2 * Math.PI) {
-                    // первая часть от multStart до 2*PI
+                    // первая часть от multStart до 2PI
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, multStart, 2 * Math.PI);
@@ -415,7 +403,7 @@
                     ctx.stroke();
                     ctx.shadowBlur = 30;
 
-                    // вторая часть от 0 до multEnd - 2*PI
+                    // вторая часть от 0 до multEnd - 2PI
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, 0, multEnd - 2 * Math.PI);
@@ -441,8 +429,7 @@
                     ctx.shadowBlur = 30;
                 }
 
-                // Текст множителя (рисуем в центре сектора множителя)
-                // Найдём середину углового интервала множителя
+                // Текст множителя
                 let midMult;
                 if (multEnd > 2 * Math.PI) {
                     const totalMultAngle = (2 * Math.PI - multStart) + (multEnd - 2 * Math.PI);
@@ -465,7 +452,7 @@
                 ctx.fillText('x' + selectedMultiplier, 0, 0);
                 ctx.restore();
 
-                // Внешний обод
+                // Обод
                 ctx.shadowBlur = 0;
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
@@ -489,17 +476,14 @@
             function drawArrow(angle) {
                 const arrowLength = radius * 0.2;
                 const baseWidth = 18;
-                const tipOffset = 6; // чтобы остриё было чуть дальше обода
+                const tipOffset = 6;
 
-                // Вычисляем координаты острия
                 const tipX = centerX + (radius + tipOffset) * Math.cos(angle);
                 const tipY = centerY + (radius + tipOffset) * Math.sin(angle);
 
-                // Основание стрелки (две точки на расстоянии arrowLength от острия назад)
                 const backX = centerX + (radius + tipOffset - arrowLength) * Math.cos(angle);
                 const backY = centerY + (radius + tipOffset - arrowLength) * Math.sin(angle);
 
-                // Перпендикуляр к направлению
                 const perpX = -Math.sin(angle);
                 const perpY = Math.cos(angle);
 
@@ -526,46 +510,35 @@
                 ctx.restore();
             }
 
-            // ---------- Определение сектора по углу стрелки ----------
+            // ---------- Определение сектора по углу стрелки (ИСПРАВЛЕНО) ----------
             function getSector(angle) {
-                let raw = normalizeAngle(angle);
-                // Проверяем, попадает ли в сектор x0 (с учётом wrap-around)
-                // Так как zeroStart может быть отрицательным, нормализуем их
-                let start = normalizeAngle(zeroStart);
-                let end = normalizeAngle(zeroEnd);
-                // Но если zeroStart < 0, то сектор переходит через 0
-                // Проще: проверить, принадлежит ли raw интервалу [zeroStart, zeroEnd] без нормализации,
-                // но с учётом того, что zeroStart может быть отрицательным, а zeroEnd положительным.
-                if (zeroStart < 0) {
-                    // Сектор пересекает 0
-                    if (raw >= zeroStart + 2 * Math.PI || raw <= zeroEnd) {
-                        return 'zero';
-                    } else {
-                        return 'mult';
-                    }
+                let a = normalizeAngle(angle);
+                // Нормализуем границы сектора x0 в [0, 2PI)
+                let s = normalizeAngle(zeroStart);
+                let e = normalizeAngle(zeroEnd);
+                // Проверяем, пересекает ли сектор 0
+                if (s < e) {
+                    // Сектор не пересекает 0
+                    if (a >= s && a <= e) return 'zero';
                 } else {
-                    if (raw >= zeroStart && raw <= zeroEnd) {
-                        return 'zero';
-                    } else {
-                        return 'mult';
-                    }
+                    // Сектор пересекает 0 (или s > e)
+                    if (a >= s || a <= e) return 'zero';
                 }
+                return 'mult';
             }
 
-            // ---------- Обновление интерфейса после выбора множителя ----------
+            // ---------- Обновление интерфейса ----------
             function updateMultiplier(mult) {
                 selectedMultiplier = mult;
                 updateAngles(mult);
                 drawWheel();
                 drawArrow(currentAngle);
                 updatePotentialWin();
-                // Активная кнопка
                 multiplierBtns.forEach(btn => {
                     btn.classList.toggle('active', parseInt(btn.dataset.mult) === mult);
                 });
             }
 
-            // ---------- Потенциальный выигрыш ----------
             function updatePotentialWin() {
                 const bet = parseInt(betInput.value) || 0;
                 const win = bet * selectedMultiplier;
@@ -575,12 +548,11 @@
                 }
             }
 
-            // ---------- Обновление баланса ----------
             function updateBalance() {
                 balanceDisplay.textContent = balance;
             }
 
-            // ---------- Вращение (анимация) ----------
+            // ---------- Вращение ----------
             function startSpin() {
                 if (isSpinning) return;
                 const bet = parseInt(betInput.value);
@@ -593,7 +565,6 @@
                     return;
                 }
 
-                // Списываем ставку
                 balance -= bet;
                 updateBalance();
 
@@ -603,7 +574,7 @@
 
                 const duration = 7000;
                 const startTime = performance.now();
-                const initialSpeed = 8 + Math.random() * 5; // 8-13 рад/с
+                const initialSpeed = 8 + Math.random() * 5;
                 const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
                 let angle = currentAngle + extraRotations;
                 let prevTimestamp = startTime;
@@ -611,14 +582,12 @@
                 function animate(timestamp) {
                     const elapsed = timestamp - startTime;
                     if (elapsed >= duration) {
-                        // Финальный угол с учётом замедления
                         const totalAngle = initialSpeed * (duration / 1000) - 0.5 * (initialSpeed / (duration / 1000)) * (duration / 1000) * (duration / 1000);
                         angle += totalAngle;
                         currentAngle = angle;
                         drawWheel();
                         drawArrow(currentAngle);
 
-                        // Определяем результат
                         const sector = getSector(currentAngle);
                         let msg = '';
                         if (sector === 'zero') {
@@ -655,13 +624,11 @@
 
             // ---------- Инициализация ----------
             function init() {
-                // Устанавливаем начальный множитель
                 updateMultiplier(2);
                 drawArrow(0);
                 updateBalance();
                 updatePotentialWin();
 
-                // Обработчики для кнопок множителя
                 multiplierBtns.forEach(btn => {
                     btn.addEventListener('click', function() {
                         if (isSpinning) return;
@@ -670,7 +637,6 @@
                     });
                 });
 
-                // Обработчик для ставки (обновляем потенциальный выигрыш)
                 betInput.addEventListener('input', updatePotentialWin);
                 betInput.addEventListener('change', function() {
                     let val = parseInt(this.value);
@@ -678,13 +644,11 @@
                     updatePotentialWin();
                 });
 
-                // Кнопка "Крутить"
                 spinBtn.addEventListener('click', startSpin);
             }
 
             init();
 
-            // Перерисовка при изменении размера окна
             window.addEventListener('resize', () => {
                 drawWheel();
                 drawArrow(currentAngle);
