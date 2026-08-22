@@ -149,7 +149,7 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 16px;
             margin: 10px 0 15px;
             width: 100%;
         }
@@ -180,6 +180,12 @@
         .bet-group input::-webkit-inner-spin-button { -webkit-appearance: none; }
         .bet-group input:focus { border-bottom: 1px solid #ffd700; }
 
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
         .spin-btn {
             background: linear-gradient(145deg, #ffd700, #ff8c00);
             border: none;
@@ -187,7 +193,7 @@
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
             font-size: 1.2rem;
-            padding: 12px 40px;
+            padding: 12px 32px;
             border-radius: 40px;
             cursor: pointer;
             letter-spacing: 2px;
@@ -203,6 +209,37 @@
             transform: scale(0.98);
             cursor: not-allowed;
             box-shadow: none;
+        }
+
+        .boost-btn {
+            background: transparent;
+            border: 2px solid #ff6a00;
+            color: #ff6a00;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(255, 100, 0, 0.1);
+        }
+        .boost-btn:hover:not(:disabled) {
+            background: rgba(255, 100, 0, 0.15);
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255, 100, 0, 0.3);
+        }
+        .boost-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: scale(0.95);
+        }
+        .boost-btn.active {
+            background: rgba(255, 100, 0, 0.2);
+            border-color: #ffd700;
+            color: #ffd700;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
         }
 
         .result-box {
@@ -221,6 +258,7 @@
         }
         .result-box .win { color: #ffd700; font-weight: 700; }
         .result-box .lose { color: #ff4466; font-weight: 700; }
+        .result-box .boost-label { color: #ff6a00; font-weight: 700; }
 
         .footer {
             margin-top: 25px;
@@ -238,7 +276,8 @@
             .logo { font-size: 1.3rem; }
             .balance-box { font-size: 1rem; padding: 6px 16px; }
             .controls { gap: 12px; }
-            .spin-btn { padding: 10px 28px; font-size: 1rem; }
+            .spin-btn { padding: 10px 24px; font-size: 1rem; }
+            .boost-btn { padding: 10px 18px; font-size: 0.8rem; }
             .bet-group input { width: 60px; font-size: 1rem; }
             .multiplier-btn { font-size: 0.8rem; padding: 6px 14px; }
         }
@@ -273,7 +312,10 @@
                     <label><i class="fas fa-gem"></i> Ставка</label>
                     <input type="number" id="betInput" value="50" min="1" step="1" />
                 </div>
-                <button class="spin-btn" id="spinBtn"><i class="fas fa-sync-alt"></i> КРУТИТЬ</button>
+                <div class="action-buttons">
+                    <button class="spin-btn" id="spinBtn"><i class="fas fa-sync-alt"></i> КРУТИТЬ</button>
+                    <button class="boost-btn" id="boostBtn"><i class="fas fa-bolt"></i> ПОДКРУТКА (x15)</button>
+                </div>
             </div>
 
             <div class="result-box" id="resultBox">
@@ -299,6 +341,7 @@
                 isSpinning: false,
                 selectedMultiplier: 2,
                 animationId: null,
+                boostActive: false,       // активна ли подкрутка
                 centerX: 300,
                 centerY: 300,
                 radius: 260,
@@ -309,6 +352,7 @@
             const balanceDisplay = document.getElementById('balanceDisplay');
             const betInput = document.getElementById('betInput');
             const spinBtn = document.getElementById('spinBtn');
+            const boostBtn = document.getElementById('boostBtn');
             const resultText = document.getElementById('resultText');
             const multiplierBtns = document.querySelectorAll('.multiplier-btn');
 
@@ -336,7 +380,6 @@
 
             // ---------- Обновление геометрии ----------
             function updateGeometry() {
-                const rect = canvas.getBoundingClientRect();
                 const w = canvas.width;
                 const h = canvas.height;
                 state.centerX = w / 2;
@@ -347,7 +390,7 @@
             // ---------- Отрисовка ----------
             function drawWheel() {
                 const { centerX, centerY, radius, sectors } = state;
-                const angle = normalizeAngle(state.currentAngle); // нормализованный для отрисовки
+                const angle = normalizeAngle(state.currentAngle);
 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.shadowColor = 'rgba(255,215,0,0.15)';
@@ -404,7 +447,6 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // стрелка рисуется с нормализованным углом
                 drawArrow(angle);
             }
 
@@ -445,7 +487,7 @@
                 ctx.restore();
             }
 
-            // ---------- Определение сектора по сырому углу ----------
+            // ---------- Определение сектора по углу (для проверки) ----------
             function getSector(rawAngle) {
                 const a = normalizeAngle(rawAngle);
                 const zeroStartNorm = normalizeAngle(state.sectors[0].start);
@@ -456,6 +498,62 @@
                     if (a >= zeroStartNorm || a <= zeroEndNorm) return 'zero';
                 }
                 return 'mult';
+            }
+
+            // ---------- Генерация целевого угла с учётом подкрутки ----------
+            function getTargetAngle(startAngle, boost) {
+                const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
+                let targetNormalized;
+                if (boost) {
+                    // с вероятностью 15/16 — в сектор mult, иначе в zero
+                    if (Math.random() < 15/16) {
+                        // сектор mult
+                        const multStart = state.sectors[1].start;
+                        const multEnd = state.sectors[1].end;
+                        // Угол в пределах [multStart, multEnd] (может быть > 2π)
+                        // Приводим к [0, 2π) для выбора
+                        let s = normalizeAngle(multStart);
+                        let e = normalizeAngle(multEnd);
+                        if (s < e) {
+                            targetNormalized = s + Math.random() * (e - s);
+                        } else {
+                            // пересекает 0
+                            if (Math.random() < 0.5) {
+                                targetNormalized = s + Math.random() * (2 * Math.PI - s);
+                            } else {
+                                targetNormalized = Math.random() * e;
+                            }
+                        }
+                    } else {
+                        // сектор zero
+                        const zeroStart = state.sectors[0].start;
+                        const zeroEnd = state.sectors[0].end;
+                        let s = normalizeAngle(zeroStart);
+                        let e = normalizeAngle(zeroEnd);
+                        if (s < e) {
+                            targetNormalized = s + Math.random() * (e - s);
+                        } else {
+                            if (Math.random() < 0.5) {
+                                targetNormalized = s + Math.random() * (2 * Math.PI - s);
+                            } else {
+                                targetNormalized = Math.random() * e;
+                            }
+                        }
+                    }
+                } else {
+                    // без подкрутки — равномерно по всему кругу
+                    targetNormalized = Math.random() * 2 * Math.PI;
+                }
+
+                // Вычисляем количество полных оборотов от startAngle + extraRotations
+                const base = startAngle + extraRotations;
+                const revolutions = Math.floor(base / (2 * Math.PI));
+                const targetAngle = revolutions * 2 * Math.PI + targetNormalized;
+                // Убедимся, что targetAngle > startAngle (добавим лишний оборот при необходимости)
+                if (targetAngle <= startAngle) {
+                    return targetAngle + 2 * Math.PI;
+                }
+                return targetAngle;
             }
 
             // ---------- Обновление UI ----------
@@ -473,8 +571,9 @@
             function updatePotentialWin() {
                 const bet = parseInt(betInput.value) || 0;
                 const win = bet * state.selectedMultiplier;
+                let boostText = state.boostActive ? ' <span class="boost-label">(Подкрутка x15 активна!)</span>' : '';
                 if (!state.isSpinning) {
-                    resultText.innerHTML = `Ставка ${bet} × ${state.selectedMultiplier} = <span class="win">${win}</span> (если выпадет x${state.selectedMultiplier})`;
+                    resultText.innerHTML = `Ставка ${bet} × ${state.selectedMultiplier} = <span class="win">${win}</span> (если выпадет x${state.selectedMultiplier})${boostText}`;
                 }
             }
 
@@ -482,7 +581,18 @@
                 balanceDisplay.textContent = state.balance;
             }
 
-            // ---------- Вращение ----------
+            function updateBoostUI() {
+                if (state.boostActive) {
+                    boostBtn.classList.add('active');
+                    boostBtn.disabled = true;
+                } else {
+                    boostBtn.classList.remove('active');
+                    boostBtn.disabled = state.isSpinning;
+                }
+                updatePotentialWin();
+            }
+
+            // ---------- Вращение (новая анимация с интерполяцией к целевому углу) ----------
             function startSpin() {
                 if (state.isSpinning) return;
                 const bet = parseInt(betInput.value);
@@ -505,22 +615,41 @@
 
                 state.isSpinning = true;
                 spinBtn.disabled = true;
-                resultText.innerHTML = '🌀 Стрелка крутится... 7 секунд';
+                boostBtn.disabled = true;
 
+                const boostUsed = state.boostActive;
+                state.boostActive = false;
+                updateBoostUI();
+
+                const startAngle = state.currentAngle;
+                const targetAngle = getTargetAngle(startAngle, boostUsed);
+
+                // Сохраняем целевой угол для проверки
                 const duration = 7000;
                 const startTime = performance.now();
-                const initialSpeed = 8 + Math.random() * 5;
-                const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
-                let angle = state.currentAngle + extraRotations; // сырой
-                let prevTimestamp = startTime;
+
+                resultText.innerHTML = '🌀 Стрелка крутится... 7 секунд' + (boostUsed ? ' <span class="boost-label">(Подкрутка активна!)</span>' : '');
+
+                function easeOutCubic(t) {
+                    return 1 - Math.pow(1 - t, 3);
+                }
 
                 function animate(timestamp) {
                     const elapsed = timestamp - startTime;
-                    if (elapsed >= duration) {
-                        // фиксируем сырой угол (без нормализации)
-                        state.currentAngle = angle;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = easeOutCubic(progress);
+                    const current = startAngle + (targetAngle - startAngle) * eased;
+                    state.currentAngle = current;
+                    drawWheel();
+
+                    if (progress < 1) {
+                        state.animationId = requestAnimationFrame(animate);
+                    } else {
+                        // Фиксируем точно targetAngle
+                        state.currentAngle = targetAngle;
                         drawWheel();
-                        const sector = getSector(state.currentAngle);
+                        // Определяем сектор (для информации)
+                        const sector = getSector(targetAngle);
                         let msg = '';
                         if (sector === 'zero') {
                             msg = `💔 Проигрыш! Выпал x0. Ставка сгорела.`;
@@ -530,28 +659,27 @@
                             state.balance += winAmount;
                             updateBalance();
                             msg = `🎉 Выигрыш! x${state.selectedMultiplier} = ${winAmount} денег!`;
+                            if (boostUsed) msg += ' <span class="boost-label">(Подкрутка сработала!)</span>';
                             resultText.innerHTML = `<span class="win">${msg}</span>`;
                         }
                         state.isSpinning = false;
                         spinBtn.disabled = false;
+                        boostBtn.disabled = false;
                         state.animationId = null;
-                        return;
+                        updateBoostUI();
                     }
-
-                    const dt = Math.min(32, timestamp - prevTimestamp);
-                    prevTimestamp = timestamp;
-
-                    const progress = elapsed / duration;
-                    const speed = initialSpeed * (1 - progress);
-                    angle += speed * (dt / 1000);
-
-                    state.currentAngle = angle; // сохраняем сырой
-                    drawWheel();
-
-                    state.animationId = requestAnimationFrame(animate);
                 }
 
                 state.animationId = requestAnimationFrame(animate);
+            }
+
+            // ---------- Активация подкрутки ----------
+            function activateBoost() {
+                if (state.isSpinning) return;
+                if (state.boostActive) return;
+                state.boostActive = true;
+                updateBoostUI();
+                resultText.innerHTML = '⚡ Подкрутка активирована! Следующий спин увеличит шанс выигрыша в 15 раз.';
             }
 
             // ---------- Инициализация ----------
@@ -565,6 +693,7 @@
                 drawWheel();
                 updateBalance();
                 updatePotentialWin();
+                updateBoostUI();
 
                 multiplierBtns.forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -586,6 +715,7 @@
                 });
 
                 spinBtn.addEventListener('click', startSpin);
+                boostBtn.addEventListener('click', activateBoost);
 
                 window.addEventListener('resize', () => {
                     updateGeometry();
