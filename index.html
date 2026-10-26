@@ -2,692 +2,500 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emma — твой голосовой репетитор</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Фракции: Арта, Кубы, Треуглы</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh; display: flex; justify-content: center; align-items: center;
-    padding: 16px; color: #333;
+    background: radial-gradient(circle at 50% 0%, #1a1a2e, #0f0f17);
+    color: #e0e0e0; min-height: 100vh;
+    display: flex; justify-content: center; align-items: center; padding: 10px;
   }
-  .card {
-    background: #fff; border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-    width: 100%; max-width: 460px; overflow: hidden;
-    display: flex; flex-direction: column;
-    height: 92vh; max-height: 820px;
+  .app {
+    width: 100%; max-width: 550px; height: 95vh; max-height: 900px;
+    background: #16213e; border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; overflow: hidden;
+    border: 1px solid #2a2a4a; position: relative;
   }
-  #setupScreen {
-    padding: 32px 24px; display: flex; flex-direction: column; gap: 18px;
-    justify-content: center; height: 100%; overflow-y: auto;
-  }
-  #setupScreen h1 {
-    font-size: 24px; text-align: center;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  #setupScreen p.subtitle { text-align: center; color: #888; font-size: 14px; margin-top: -10px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 13px; font-weight: 600; color: #555; }
-  .field select {
-    padding: 12px 14px; border-radius: 12px; border: 2px solid #e0e0e0;
-    font-size: 15px; background: #fafafa; cursor: pointer;
-  }
-  #startBtn {
-    padding: 14px; border: none; border-radius: 12px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
-  }
-  #warning {
-    background: #fff3cd; border: 1px solid #ffeeba; color: #856404;
-    padding: 10px; border-radius: 10px; font-size: 13px; line-height: 1.4;
-    display: none;
-  }
-
-  #chatScreen { display: none; flex-direction: column; height: 100%; }
   header {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff; padding: 12px 16px;
-    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, #1e1e3a, #2a2a5a);
+    padding: 12px 16px; border-bottom: 1px solid #3a3a6a;
+    display: flex; justify-content: space-between; align-items: center;
   }
-  .avatar {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(255,255,255,0.25);
-    display: flex; justify-content: center; align-items: center;
-    font-size: 22px; border: 2px solid rgba(255,255,255,0.5);
+  header h1 { font-size: 16px; color: #c9b8ff; letter-spacing: 1px; }
+  .user-info { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .role-badge { padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+  .role-badge.admin { background: #ff3b30; color: white; }
+  .role-badge.user { background: #3a3a6a; color: #aaa; }
+  
+  .tabs { display: flex; gap: 4px; padding: 10px 12px; background: #12122a; border-bottom: 1px solid #2a2a4a; }
+  .tab {
+    flex: 1; padding: 8px 4px; border: none; border-radius: 8px;
+    background: transparent; color: #6a6a8a; font-weight: 600; font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
   }
-  .avatar.speaking { animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-  .header-info { flex: 1; min-width: 0; }
-  .header-info .name { font-size: 16px; font-weight: 700; }
-  .header-info .status { font-size: 12px; opacity: 0.9; }
+  .tab.active { background: linear-gradient(135deg, #5a4a9a, #7a5aff); color: #fff; box-shadow: 0 4px 14px rgba(122,90,255,0.3); }
+  
+  #chatLog { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #0f0f1f; scroll-behavior: smooth; }
+  .msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; animation: fadeIn 0.2s ease; word-wrap: break-word; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  .msg.user { align-self: flex-end; background: linear-gradient(135deg, #3a5a9a, #5a8aff); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.assistant { align-self: flex-start; background: #1e1e3a; color: #d0d0f0; border: 1px solid #2a2a4a; border-bottom-left-radius: 4px; }
+  .msg.assistant .name { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; opacity: 0.7; text-transform: uppercase; }
+  .msg.system { align-self: center; background: transparent; color: #ff9f0a; font-size: 12px; font-style: italic; padding: 4px; }
+  
+  .actions-bar { display: flex; gap: 8px; padding: 8px 12px; background: #12122a; }
+  .action-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; }
+  .action-btn.peace { background: #34c759; color: #fff; }
+  .action-btn.bomb { background: #ff3b30; color: #fff; }
+  .action-btn:hover { opacity: 0.8; }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .icon-btn {
-    background: rgba(255,255,255,0.2); border: none; color: #fff;
-    min-width: 36px; height: 36px; padding: 0 8px; border-radius: 18px;
-    font-size: 13px; cursor: pointer; font-weight: 600;
-  }
-  .icon-btn:hover { background: rgba(255,255,255,0.35); }
-  .icon-btn.muted { background: rgba(0,0,0,0.35); }
+  .input-area { padding: 10px 12px 14px; background: #12122a; border-top: 1px solid #2a2a4a; display: flex; gap: 8px; align-items: center; }
+  #textInput { flex: 1; padding: 12px; border-radius: 20px; border: 2px solid #2a2a4a; background: #0f0f1f; color: #e0e0e0; font-size: 14px; outline: none; }
+  #micBtn, #sendBtn { width: 42px; height: 42px; border-radius: 50%; border: none; background: linear-gradient(135deg, #5a4a9a, #7a5aff); color: #fff; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+  #micBtn.recording { background: #ff3b30; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-  #chatLog {
-    flex: 1; overflow-y: auto; padding: 14px;
-    display: flex; flex-direction: column; gap: 10px;
-    background: #f7f7fb;
-  }
-  .msg {
-    max-width: 82%; padding: 10px 14px; border-radius: 16px;
-    font-size: 15px; line-height: 1.4; word-wrap: break-word;
-    animation: fadeIn 0.25s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .msg.user { align-self: flex-end; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-bottom-right-radius: 4px; }
-  .msg.bot  { align-self: flex-start; background: #fff; color: #333; border: 1px solid #e6e6ee; border-bottom-left-radius: 4px; }
-  .msg.system { align-self: center; background: transparent; color: #999; font-size: 12px; font-style: italic; padding: 4px; }
-  .msg .translation { display: block; margin-top: 6px; font-size: 13px; color: #7a5cff; font-style: italic; }
-
-  /* индикатор уровня микрофона */
-  #levelWrap {
-    display: none; padding: 6px 14px; background: #fff;
-    border-top: 1px solid #eee; align-items: center; gap: 8px;
-  }
-  #levelWrap.show { display: flex; }
-  #levelBar {
-    flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden;
-  }
-  #levelFill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, #4cd964, #ffcc00, #ff3b30);
-    transition: width 0.06s linear;
-  }
-  #levelWrap .lbl { font-size: 11px; color: #888; min-width: 90px; }
-
-  .input-row {
-    padding: 10px 12px; background: #fff; border-top: 1px solid #eee;
-    display: flex; gap: 8px; align-items: center;
-  }
-  #textInput {
-    flex: 1; padding: 10px 14px; border-radius: 20px;
-    border: 2px solid #e0e0e0; font-size: 15px; outline: none;
-  }
-  #textInput:focus { border-color: #764ba2; }
-  #sendBtn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff; border: none; width: 42px; height: 42px;
-    border-radius: 50%; font-size: 18px; cursor: pointer;
-  }
-
-  .controls {
-    padding: 10px 16px 14px; background: #fff;
-    display: flex; justify-content: center; align-items: center; gap: 14px;
-  }
-  #langToggle {
-    padding: 8px 14px; border-radius: 20px; border: 2px solid #764ba2;
-    background: #fff; color: #764ba2; font-weight: 700; font-size: 13px;
-    cursor: pointer; min-width: 70px;
-  }
-  #micBtn {
-    width: 66px; height: 66px; border-radius: 50%; border: none;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff; font-size: 28px; cursor: pointer;
-    box-shadow: 0 6px 16px rgba(118,75,162,0.4);
-    display: flex; justify-content: center; align-items: center;
-  }
-  #micBtn:hover { transform: scale(1.05); }
-  #micBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-  #micBtn.listening {
-    background: linear-gradient(135deg, #ff5e7e, #ff2d55);
-    animation: pulse 1s infinite;
-  }
-
-  #statusBar {
-    position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.8); color: #fff;
-    padding: 8px 16px; border-radius: 20px; font-size: 13px;
-    opacity: 0; transition: opacity 0.3s; pointer-events: none;
-    white-space: nowrap; max-width: 90%; z-index: 10;
-  }
-  #statusBar.show { opacity: 1; }
-
-  /* панель отладки */
-  #debugPanel {
-    display: none; padding: 8px 12px; background: #1e1e2e; color: #a6e3a1;
-    font-family: monospace; font-size: 11px; max-height: 100px;
-    overflow-y: auto; line-height: 1.4;
-  }
-  #debugPanel.show { display: block; }
-  #debugPanel .err { color: #f38ba8; }
-  #debugPanel .info { color: #89b4fa; }
+  /* Админ-панель */
+  #adminPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.95); z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+  #adminPanel.show { display: flex; }
+  #adminPanel h2 { color: #ff3b30; margin-bottom: 15px; }
+  .admin-user-item { display: flex; justify-content: space-between; align-items: center; background: #1e1e3a; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+  .admin-btn { background: #5a4a9a; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+  .reset-input { display: flex; gap: 8px; margin-top: 20px; }
+  .reset-input input { flex: 1; padding: 8px; border-radius: 6px; border: none; }
+  .reset-input button { background: #ff3b30; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+  .close-admin { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 8px; border-radius: 6px; margin-top: auto; cursor: pointer; }
 </style>
 </head>
 <body>
-<div class="card">
-
-  <div id="setupScreen">
-    <h1>👩‍🏫 Emma</h1>
-    <p class="subtitle">Твой голосовой репетитор английского</p>
-    <div id="warning"></div>
-
-    <div class="field">
-      <label for="learnLang">Какой язык изучаешь?</label>
-      <select id="learnLang">
-        <option value="English" selected>English (Английский)</option>
-        <option value="Spanish">Spanish (Испанский)</option>
-        <option value="German">German (Немецкий)</option>
-        <option value="French">French (Французский)</option>
-        <option value="Italian">Italian (Итальянский)</option>
-      </select>
+<div class="app">
+  <header>
+    <h1>⚔️ Фракции</h1>
+    <div class="user-info">
+      <span id="userNameDisplay">Гость</span>
+      <span id="userRoleBadge" class="role-badge user">Гость</span>
+      <button id="adminToggleBtn" style="display:none; background:none; border:none; color:#ff3b30; cursor:pointer; font-size:16px;">⚙️</button>
     </div>
+  </header>
 
-    <div class="field">
-      <label for="nativeLang">Твой родной язык?</label>
-      <select id="nativeLang">
-        <option value="Russian" selected>Русский</option>
-        <option value="Ukrainian">Українська</option>
-        <option value="Kazakh">Қазақша</option>
-        <option value="English">English</option>
-        <option value="Spanish">Español</option>
-      </select>
-    </div>
-
-    <button id="startBtn">Начать общение 💬</button>
+  <div class="tabs">
+    <button class="tab active" data-faction="arta">Арта</button>
+    <button class="tab" data-faction="cubes">Кубы</button>
+    <button class="tab" data-faction="treugly">Треуглы</button>
   </div>
 
-  <div id="chatScreen">
-    <header>
-      <div class="avatar" id="avatar">👩‍🏫</div>
-      <div class="header-info">
-        <div class="name">Emma</div>
-        <div class="status" id="emmaStatus">Онлайн</div>
-      </div>
-      <button class="icon-btn" id="muteBtn" title="Голос Emma">🔊</button>
-      <button class="icon-btn" id="debugBtn" title="Отладка">🐞</button>
-      <button class="icon-btn" id="resetBtn" title="Заново">↻</button>
-    </header>
+  <div id="chatLog"></div>
 
-    <div id="chatLog"></div>
-
-    <div id="levelWrap">
-      <span class="lbl">Уровень микрофона</span>
-      <div id="levelBar"><div id="levelFill"></div></div>
-    </div>
-
-    <div id="debugPanel"></div>
-
-    <div class="input-row">
-      <input type="text" id="textInput" placeholder="Или напиши сообщение...">
-      <button id="sendBtn">➤</button>
-    </div>
-
-    <div class="controls">
-      <button id="langToggle" title="Язык ввода">EN 🎤</button>
-      <button id="micBtn" title="Нажми и говори">🎤</button>
-      <span style="width:70px"></span>
-    </div>
-
-    <div id="statusBar"></div>
+  <div class="actions-bar">
+    <button class="action-btn peace" onclick="doAction('peace')">🕊️ Предложить мир</button>
+    <button class="action-btn bomb" onclick="doAction('bomb')">💣 Бомбить</button>
   </div>
 
+  <div class="input-area">
+    <button id="micBtn">🎤</button>
+    <input type="text" id="textInput" placeholder="Написать..." autocomplete="off">
+    <button id="sendBtn">➤</button>
+  </div>
+
+  <!-- Админ панель -->
+  <div id="adminPanel">
+    <h2>⚙️ Админ-панель</h2>
+    <p style="font-size:12px; color:#aaa; margin-bottom:15px;">Список участников:</p>
+    <div id="adminUserList"></div>
+    
+    <div class="reset-input">
+      <input type="text" id="resetCode" placeholder="Секретный код">
+      <button onclick="resetFaction()">Сбросить</button>
+    </div>
+    <p style="font-size:11px; color:#666; margin-top:5px;">Код: <b>12345</b> (сбросит текущую фракцию)</p>
+    
+    <button class="close-admin" onclick="document.getElementById('adminPanel').classList.remove('show')">Закрыть</button>
+  </div>
 </div>
 
-<script>
-/* =========================================================
-   НАСТРОЙКИ
-   ========================================================= */
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, query, limitToLast, set, get, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBSb532Ppi7xXdfHcuDfXTp6U_ut_0saio",
+  authDomain: "zing-30a21.firebaseapp.com",
+  databaseURL: "https://zing-30a21-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "zing-30a21",
+  storageBucket: "zing-30a21.firebasestorage.app",
+  messagingSenderId: "179467663659",
+  appId: "1:179467663659:web:be71167fd0ffd412416d6e"
+};
+
 const API_KEY = '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';
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL   = 'llama-3.3-70b-versatile';
+const STT_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
+const MODEL   = 'openai/gpt-oss-120b';
+const STT_MODEL = 'whisper-large-v3-turbo';
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 /* =========================================================
    СОСТОЯНИЕ
    ========================================================= */
-let learningLang = 'English';
-let nativeLang   = 'Russian';
-let history      = [];
-let isMuted      = false;
-let isBusy       = false;
-let micStream    = null;
-let audioCtx     = null;
-let analyser     = null;
-let levelRAF     = null;
-let inputLangMode = 'learn';
-let recognitionActive = false;
+let currentFaction = 'arta';
+let unsubMessages = null;
+let isBusy = false;
+let myUUID = localStorage.getItem('faction_uuid');
+if (!myUUID) { myUUID = crypto.randomUUID(); localStorage.setItem('faction_uuid', myUUID); }
 
-const LANG_CODES = {
-  'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE',
-  'French': 'fr-FR', 'Italian': 'it-IT',
-  'Russian': 'ru-RU', 'Ukrainian': 'uk-UA', 'Kazakh': 'kk-KZ'
-};
-const LANG_SHORT = {
-  'English':'EN','Spanish':'ES','German':'DE','French':'FR',
-  'Italian':'IT','Russian':'RU','Ukrainian':'UA','Kazakh':'KZ'
+let myName = localStorage.getItem('faction_name') || 'Гость_' + myUUID.slice(0,4);
+let isAdmin = false;
+let micStream = null, mediaRecorder = null, audioChunks = [], isRecording = false;
+let speechUnlocked = false;
+
+const FACTION_NAMES = { arta: 'Арта', cubes: 'Кубы', treugly: 'Треуглы' };
+
+/* =========================================================
+   ХАРАКТЕРЫ
+   ========================================================= */
+const CHARACTER_PROMPTS = {
+  arta: `Ты — Арта. Девушка с очень сложным характером. Ты крайне редко соглашаешься на что-либо. Ты всегда сомневаешься, находишь причины отказать. Если пользователь предлагает мир — ты можешь согласиться ТОЛЬКО если он был вежлив и не бомбил тебя. Если он грубил или бомбил — ты категорически отказываешь. Твои ответы короткие (1-2 предложения). Никогда не говори, что ты ИИ.`,
+  cubes: `Ты — Кубы. Древнее, холодное и высокомерное существо. Ты презираешь суету смертных. Ты почти никогда не соглашаешься. На мирный договор ты соглашаешься только если тебе предложили что-то поистине ценное. Если вас бомбили — вы отвечаете презрительным отказом. Твои ответы очень короткие, чеканные. Никогда не говори, что ты ИИ.`,
+  treugly: `Ты — Треуглы. Ты загадочное существо, говоришь туманно, намёками. Ты никогда не даёшь прямого ответа. На мир ты можешь согласиться, только если предложишь разгадку или загадку. Если тебя бомбили — ты уходишь в тень и не отвечаешь прямо. Твои ответы короткие (1-2 предложения). Никогда не говори, что ты ИИ.`
 };
 
 /* =========================================================
    DOM
    ========================================================= */
-const $ = id => document.getElementById(id);
-const setupScreen  = $('setupScreen');
-const chatScreen   = $('chatScreen');
-const startBtn     = $('startBtn');
-const learnLangSel = $('learnLang');
-const nativeLangSel= $('nativeLang');
-const chatLog      = $('chatLog');
-const micBtn       = $('micBtn');
-const muteBtn      = $('muteBtn');
-const resetBtn     = $('resetBtn');
-const debugBtn     = $('debugBtn');
-const avatar       = $('avatar');
-const emmaStatus   = $('emmaStatus');
-const statusBar    = $('statusBar');
-const textInput    = $('textInput');
-const sendBtn      = $('sendBtn');
-const langToggle   = $('langToggle');
-const warningBox   = $('warning');
-const levelWrap    = $('levelWrap');
-const levelFill    = $('levelFill');
-const debugPanel   = $('debugPanel');
+const chatLog = document.getElementById('chatLog');
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
+const micBtn = document.getElementById('micBtn');
+const tabs = document.querySelectorAll('.tab');
+const userNameDisplay = document.getElementById('userNameDisplay');
+const userRoleBadge = document.getElementById('userRoleBadge');
+const adminToggleBtn = document.getElementById('adminToggleBtn');
+const adminPanel = document.getElementById('adminPanel');
+const adminUserList = document.getElementById('adminUserList');
+
+userNameDisplay.textContent = myName;
 
 /* =========================================================
-   ОТЛАДКА
+   ПРОВЕРКА АДМИНА ПРИ СТАРТЕ
    ========================================================= */
-function log(msg, kind = 'info') {
-  const line = document.createElement('div');
-  line.className = kind;
-  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-  debugPanel.appendChild(line);
-  debugPanel.scrollTop = debugPanel.scrollHeight;
-  console.log(msg);
-}
-debugBtn.addEventListener('click', () => debugPanel.classList.toggle('show'));
+async function initUser() {
+  const adminClaimRef = ref(db, 'config/adminClaimed');
+  const userRef = ref(db, 'users/' + myUUID);
 
-/* =========================================================
-   ПРОВЕРКИ
-   ========================================================= */
-const isSecure = location.protocol === 'https:' ||
-                 location.hostname === 'localhost' ||
-                 location.hostname === '127.0.0.1';
+  // Пытаемся занять место первого админа (безопасно от гонок)
+  await runTransaction(adminClaimRef, (currentData) => {
+    if (currentData === null) return myUUID;
+    return currentData;
+  });
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const snap = await get(adminClaimRef);
+  const adminUuid = snap.val();
 
-if (!isSecure) {
-  warningBox.style.display = 'block';
-  warningBox.innerHTML = '⚠️ Открыт файл как <b>file://</b> — микрофон работать не будет.<br>' +
-    'В терминале: <code>python -m http.server 8000</code><br>' +
-    'и открой <b>http://localhost:8000</b>';
-}
-if (!SpeechRecognition) {
-  warningBox.style.display = 'block';
-  warningBox.innerHTML += '<br>⚠️ Браузер не поддерживает распознавание речи. Используй Chrome или Edge.';
-}
+  if (adminUuid === myUUID) {
+    isAdmin = true;
+    await set(userRef, { name: myName, role: 'admin' });
+  } else {
+    const userSnap = await get(userRef);
+    if (userSnap.exists()) {
+      isAdmin = userSnap.val().role === 'admin';
+    } else {
+      await set(userRef, { name: myName, role: 'user' });
+    }
+  }
 
-const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-if (recognition) {
-  recognition.continuous = false;
-  recognition.interimResults = true;   // важно: получаем промежуточные результаты
-  recognition.maxAlternatives = 1;
-  recognition.lang = 'en-US';
+  updateUIRole();
+
+  if (isAdmin) {
+    adminToggleBtn.style.display = 'block';
+    adminToggleBtn.onclick = () => { openAdminPanel(); };
+    listenToUsers();
+  }
 }
 
-const synth = window.speechSynthesis;
-
-/* =========================================================
-   ЖЕНСКИЙ ГОЛОС
-   ========================================================= */
-let femaleVoice = null;
-function pickFemaleVoice() {
-  const voices = synth.getVoices();
-  if (!voices.length) return;
-  const langCode = (LANG_CODES[learningLang] || 'en-US').split('-')[0];
-  const byLang = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
-  const femaleNames = ['female','woman','zira','samantha','victoria','karen','moira','tessa','google uk english female','google us english','milena','yelda','alice','elsa','paulina','lucia','katya'];
-  const isFemale = v => femaleNames.some(n => v.name.toLowerCase().includes(n));
-  femaleVoice = byLang.find(isFemale) || byLang[0] || voices.find(isFemale) || voices[0];
-  log('Голос Emma: ' + (femaleVoice ? femaleVoice.name : 'не найден'));
+function updateUIRole() {
+  if (isAdmin) {
+    userRoleBadge.textContent = 'АДМИН';
+    userRoleBadge.className = 'role-badge admin';
+  } else {
+    userRoleBadge.textContent = 'УЧАСТНИК';
+    userRoleBadge.className = 'role-badge user';
+  }
 }
-synth.onvoiceschanged = pickFemaleVoice;
-pickFemaleVoice();
 
-/* =========================================================
-   СТАРТ
-   ========================================================= */
-startBtn.addEventListener('click', async () => {
-  learningLang = learnLangSel.value;
-  nativeLang   = nativeLangSel.value;
-
-  history = [{
-    role: 'system',
-    content:
-`You are Emma, a warm and friendly female ${learningLang} tutor. The user's native language is ${nativeLang}.
-
-RULES:
-1. Main reply ALWAYS in ${learningLang} (short, 1-3 sentences, natural, friendly).
-2. If user writes/speaks in ${nativeLang} — understand them, but reply in ${learningLang}.
-3. After your main reply, if worth explaining or a new word — add a short note in ${nativeLang} on a new line in EXACT format:
-[${nativeLang}] твоё краткое пояснение или перевод.
-
-4. If the user made a grammar/vocab mistake, gently correct it inside the note in ${nativeLang}.
-5. ALWAYS end with a short follow-up question in ${learningLang}.
-6. Talk about everyday things: day, hobbies, food, travel, movies, dreams.
-7. Never say you're an AI. You are Emma.`
-  }];
-
-  pickFemaleVoice();
-  setupScreen.style.display = 'none';
-  chatScreen.style.display  = 'flex';
-  addMsg('system', `Ты изучаешь ${learningLang}. Emma говорит на ${learningLang} и поясняет на ${nativeLang}.`);
-  updateLangToggle();
-
-  log('Язык: ' + learningLang + ' / родной: ' + nativeLang);
-  await initMic();
-
-  greetUser();
+// Смена имени
+userNameDisplay.addEventListener('click', async () => {
+  const newName = prompt('Как тебя зовут?', myName);
+  if (newName && newName.trim()) {
+    myName = newName.trim();
+    localStorage.setItem('faction_name', myName);
+    userNameDisplay.textContent = myName;
+    await set(ref(db, 'users/' + myUUID + '/name'), myName);
+  }
 });
 
 /* =========================================================
-   ИНИЦИАЛИЗАЦИЯ МИКРОФОНА + ИНДИКАТОР УРОВНЯ
+   АДМИН ПАНЕЛЬ
    ========================================================= */
-async function initMic() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    log('getUserMedia не поддерживается', 'err');
-    setStatus('Браузер не даёт доступ к микрофону API', true);
-    return false;
-  }
-  if (micStream) return true;
+function openAdminPanel() {
+  adminPanel.classList.add('show');
+  listenToUsers();
+}
 
-  try {
-    log('Запрашиваю доступ к микрофону...');
-    micStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+function listenToUsers() {
+  onValue(ref(db, 'users'), (snap) => {
+    adminUserList.innerHTML = '';
+    const users = snap.val() || {};
+    Object.keys(users).forEach(uuid => {
+      const u = users[uuid];
+      const div = document.createElement('div');
+      div.className = 'admin-user-item';
+      div.innerHTML = `<span>${u.name} ${u.role === 'admin' ? '(Админ)' : ''}</span>`;
+      
+      if (u.role !== 'admin') {
+        const btn = document.createElement('button');
+        btn.className = 'admin-btn';
+        btn.textContent = 'Повысить';
+        btn.onclick = async () => {
+          await set(ref(db, 'users/' + uuid + '/role'), 'admin');
+        };
+        div.appendChild(btn);
+      }
+      adminUserList.appendChild(div);
     });
-    log('✓ Доступ к микрофону получен', 'info');
-
-    // индикатор уровня
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaStreamSource(micStream);
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 512;
-    source.connect(analyser);
-    levelWrap.classList.add('show');
-    startLevelMeter();
-
-    return true;
-  } catch (e) {
-    log('✗ Ошибка микрофона: ' + e.name + ' — ' + e.message, 'err');
-    let m = 'Не удалось получить доступ к микрофону: ' + e.name;
-    if (e.name === 'NotAllowedError') m = 'Ты запретил доступ к микрофону. Разреши в настройках сайта.';
-    if (e.name === 'NotFoundError')   m = 'Микрофон не найден.';
-    if (e.name === 'NotReadableError')m = 'Микрофон занят другим приложением.';
-    setStatus(m, true);
-    setTimeout(() => setStatus(''), 4000);
-    return false;
-  }
+  });
 }
 
-function startLevelMeter() {
-  const data = new Uint8Array(analyser.fftSize);
-  const tick = () => {
-    analyser.getByteTimeDomainData(data);
-    let peak = 0;
-    for (let i = 0; i < data.length; i++) {
-      const v = Math.abs(data[i] - 128);
-      if (v > peak) peak = v;
-    }
-    const pct = Math.min(100, Math.round(peak / 128 * 100 * 2.5));
-    levelFill.style.width = pct + '%';
-    levelRAF = requestAnimationFrame(tick);
-  };
-  tick();
-}
+window.resetFaction = async () => {
+  const code = document.getElementById('resetCode').value;
+  if (code !== '12345') { alert('Неверный код!'); return; }
+  if (!confirm('Точно сбросить историю этой фракции?')) return;
+  
+  await remove(ref(db, 'chats/' + currentFaction));
+  alert('История фракции очищена!');
+  document.getElementById('resetCode').value = '';
+};
 
 /* =========================================================
-   ПРИВЕТСТВИЕ
+   ДЕЙСТВИЯ (МИР / БОМБА)
    ========================================================= */
-async function greetUser() {
-  setStatus('Emma думает...', true);
-  const reply = await askAI('(The user just joined. Greet them warmly in ' + learningLang + ' and ask one simple question. Include a short [' + nativeLang + '] line with translation.)');
-  renderBotMessage(reply);
-  await speak(reply);
-}
+window.doAction = async (action) => {
+  if (isBusy) return;
+  const actText = action === 'peace' ? 'Предлагаю мирный договор.' : 'Мы бомбим вас!';
+  
+  isBusy = true;
+  setStatus('...');
+  
+  const messagesRef = ref(db, 'chats/' + currentFaction);
+  
+  await push(messagesRef, {
+    role: 'user',
+    text: actText,
+    user: myName,
+    timestamp: Date.now()
+  });
+
+  const snap = await get(query(messagesRef, limitToLast(10)));
+  const historyArr = Object.values(snap.val() || {}).map(m => ({
+    role: m.role === 'user' ? 'user' : 'assistant',
+    content: m.text
+  }));
+
+  const reply = await askAI(currentFaction, historyArr, action);
+
+  await push(messagesRef, {
+    role: 'assistant',
+    text: reply,
+    timestamp: Date.now()
+  });
+  
+  isBusy = false;
+  setStatus('');
+};
 
 /* =========================================================
-   МИКРОФОН — нажатие кнопки
+   ОТПРАВКА СООБЩЕНИЙ
    ========================================================= */
-micBtn.addEventListener('click', async () => {
-  if (isBusy || !recognition) return;
+async function sendMessage(text) {
+  if (!text.trim() || isBusy) return;
+  isBusy = true;
+  sendBtn.disabled = true; micBtn.disabled = true;
 
-  if (recognitionActive) {
-    try { recognition.stop(); } catch(e){}
-    return;
-  }
-
-  const ok = await initMic();
-  if (!ok) return;
-
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-  recognition.lang = LANG_CODES[inputLangMode === 'learn' ? learningLang : nativeLang] || 'en-US';
-  log('Старт распознавания, язык: ' + recognition.lang);
+  const messagesRef = ref(db, 'chats/' + currentFaction);
 
   try {
-    recognition.start();
-  } catch (e) {
-    log('Ошибка start(): ' + e.message, 'err');
-  }
-});
+    await push(messagesRef, { role: 'user', text: text, user: myName, timestamp: Date.now() });
 
-if (recognition) {
-  recognition.onstart = () => {
-    recognitionActive = true;
-    micBtn.classList.add('listening');
-    micBtn.textContent = '⏹';
-    setStatus('Слушаю... говори', true);
-    log('✓ Распознавание запущено', 'info');
-  };
+    const snap = await get(query(messagesRef, limitToLast(10)));
+    const historyArr = Object.values(snap.val() || {}).map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }));
 
-  recognition.onend = () => {
-    recognitionActive = false;
-    micBtn.classList.remove('listening');
-    micBtn.textContent = '🎤';
-    log('Распознавание завершено');
-    if (!isBusy) setStatus('');
-  };
+    const reply = await askAI(currentFaction, historyArr, 'chat');
+    await push(messagesRef, { role: 'assistant', text: reply, timestamp: Date.now() });
 
-  recognition.onaudiostart = () => log('→ Захват аудио начался');
-  recognition.onsoundstart = () => { log('→ Звук обнаружен'); setStatus('Слышу звук...', true); };
-  recognition.onspeechstart = () => { log('→ Распознаётся речь'); setStatus('Распознаю речь...', true); };
-  recognition.onspeechend = () => log('→ Речь закончилась');
-  recognition.onsoundend = () => log('→ Звук закончился');
-
-  recognition.onerror = (e) => {
-    recognitionActive = false;
-    micBtn.classList.remove('listening');
-    micBtn.textContent = '🎤';
-    log('✗ STT ошибка: ' + e.error, 'err');
-    let m = 'Ошибка: ' + e.error;
-    if (e.error === 'not-allowed') m = 'Доступ к микрофону запрещён.';
-    if (e.error === 'no-speech')   m = 'Речь не распознана, попробуй ещё раз и говори чётче.';
-    if (e.error === 'network')     m = '⚠️ Сервис распознавания Google недоступен. Похоже, провайдер/сеть блокирует. Попробуй VPN или текстовое поле.';
-    if (e.error === 'aborted')     m = '';
-    if (m) { setStatus(m, true); setTimeout(() => setStatus(''), 5000); }
-  };
-
-  recognition.onresult = async (event) => {
-    let finalText = '';
-    let interim = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript;
-      if (event.results[i].isFinal) finalText += t;
-      else interim += t;
-    }
-    if (interim) {
-      setStatus('🎙 ' + interim, true);
-      log('Промежуточно: ' + interim);
-    }
-    if (finalText.trim()) {
-      log('✓ Финальный текст: ' + finalText);
-      await handleUserMessage(finalText.trim());
-    }
-  };
+  } catch (e) { console.error(e); }
+  finally { isBusy = false; sendBtn.disabled = false; micBtn.disabled = false; }
 }
 
 /* =========================================================
-   ТЕКСТОВЫЙ ВВОД
+   GROQ API
    ========================================================= */
-sendBtn.addEventListener('click', () => {
-  const t = textInput.value.trim();
-  if (!t || isBusy) return;
-  textInput.value = '';
-  handleUserMessage(t);
-});
-textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+async function askAI(faction, history, actionType) {
+  const systemPrompt = CHARACTER_PROMPTS[faction];
+  
+  let extraInstruction = "";
+  if (actionType === 'peace') extraInstruction = "Пользователь только что предложил тебе МИРНЫЙ ДОГОВОР. Реши, принимаешь ты его или нет, исходя из истории. Если он грубил — откажи.";
+  if (actionType === 'bomb') extraInstruction = "Пользователь только что СБРОСИЛ БОМБУ на тебя. Ответь на это. Ты в ярости или презрении. Ты больше никогда не согласишься на мир.";
 
-/* =========================================================
-   ОБРАБОТКА СООБЩЕНИЯ
-   ========================================================= */
-async function handleUserMessage(userText) {
-  addMsg('user', userText);
-  history.push({ role: 'user', content: userText });
-
-  isBusy = true;
-  micBtn.disabled = true;
-  setStatus('Emma думает...', true);
-
-  const reply = await askAI(null);
-  renderBotMessage(reply);
-  history.push({ role: 'assistant', content: reply });
-
-  await speak(reply);
-
-  isBusy = false;
-  micBtn.disabled = false;
-  setStatus('');
-}
-
-/* =========================================================
-   GROQ
-   ========================================================= */
-async function askAI(extraPrompt) {
-  const messages = extraPrompt
-    ? [...history, { role: 'user', content: extraPrompt }]
-    : history;
+  const messages = [
+    { role: 'system', content: systemPrompt + " " + extraInstruction }, 
+    ...history
+  ];
 
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ model: MODEL, messages, temperature: 0.85, max_tokens: 260 })
+      headers: { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: MODEL, messages: messages, temperature: 0.9, max_tokens: 150, reasoning_effort: 'low' })
     });
-    if (!res.ok) {
-      const err = await res.text();
-      log('Groq HTTP ' + res.status + ': ' + err.slice(0,150), 'err');
-      return 'Sorry, I had a problem thinking. Try again.';
-    }
     const data = await res.json();
-    return data.choices[0].message.content.trim();
+    let content = data.choices[0].message.content.trim();
+    speak(content, faction);
+    return content || '...';
   } catch (e) {
-    log('Groq fetch error: ' + e.message, 'err');
-    return 'Sorry, no connection. Check the internet.';
+    return 'Связь прервалась.';
   }
 }
 
 /* =========================================================
-   РЕНДЕР (с русской сноской)
+   РЕНДЕР
    ========================================================= */
-function renderBotMessage(raw) {
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  const mainLines = [], noteLines = [];
-  const noteRe = new RegExp('^\\[' + nativeLang + '\\]\\s*', 'i');
-  for (const line of lines) {
-    if (noteRe.test(line)) noteLines.push(line.replace(noteRe, ''));
-    else mainLines.push(line);
-  }
-  const div = document.createElement('div');
-  div.className = 'msg bot';
-  div.textContent = mainLines.join(' ') || raw;
-  if (noteLines.length) {
-    const tr = document.createElement('span');
-    tr.className = 'translation';
-    tr.textContent = '🇷🇺 ' + noteLines.join(' ');
-    div.appendChild(tr);
-  }
-  chatLog.appendChild(div);
-  chatLog.scrollTop = chatLog.scrollHeight;
-}
+function subscribeToFaction(faction) {
+  if (unsubMessages) unsubMessages();
+  chatLog.innerHTML = '';
 
-/* =========================================================
-   ОЗВУЧКА
-   ========================================================= */
-function speak(text) {
-  return new Promise((resolve) => {
-    if (isMuted || !text) { resolve(); return; }
-    synth.cancel();
-    const noteRe = new RegExp('\\[' + nativeLang + '\\][^\\n]*', 'gi');
-    let spoken = text.replace(noteRe, '').replace(/\(Correct:[^)]*\)/gi, '').trim();
-    if (!spoken) { resolve(); return; }
-
-    const u = new SpeechSynthesisUtterance(spoken);
-    u.lang = LANG_CODES[learningLang] || 'en-US';
-    u.rate = 0.95; u.pitch = 1.15; u.volume = 1;
-    if (femaleVoice) u.voice = femaleVoice;
-    u.onstart = () => { avatar.classList.add('speaking'); emmaStatus.textContent = 'Говорит...'; };
-    u.onend   = () => { avatar.classList.remove('speaking'); emmaStatus.textContent = 'Онлайн'; resolve(); };
-    u.onerror = () => { avatar.classList.remove('speaking'); emmaStatus.textContent = 'Онлайн'; resolve(); };
-    synth.speak(u);
+  const messagesRef = query(ref(db, 'chats/' + faction), limitToLast(50));
+  unsubMessages = onValue(messagesRef, (snapshot) => {
+    chatLog.innerHTML = '';
+    const data = snapshot.val();
+    if (data) {
+      Object.values(data).forEach(msg => renderMessage(msg.role, msg.text, msg.user, msg.timestamp, faction));
+    }
+    chatLog.scrollTop = chatLog.scrollHeight;
   });
 }
 
-/* =========================================================
-   ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА
-   ========================================================= */
-function updateLangToggle() {
-  langToggle.textContent = (inputLangMode === 'learn'
-    ? LANG_SHORT[learningLang] : LANG_SHORT[nativeLang]) + ' 🎤';
+function renderMessage(role, text, senderName, timestamp, faction) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+
+  if (role === 'assistant') {
+    div.innerHTML = `<span class="name">${FACTION_NAMES[faction]}</span>`;
+  } else if (senderName) {
+    div.innerHTML = `<span class="name">${senderName}</span>`;
+  }
+
+  const textEl = document.createElement('span');
+  textEl.textContent = text;
+  div.appendChild(textEl);
+  chatLog.appendChild(div);
 }
-langToggle.addEventListener('click', () => {
-  inputLangMode = inputLangMode === 'learn' ? 'native' : 'learn';
-  updateLangToggle();
-  log('Язык ввода: ' + (inputLangMode === 'learn' ? learningLang : nativeLang));
-  setStatus('Язык ввода: ' + (inputLangMode === 'learn' ? learningLang : nativeLang), true);
-  setTimeout(() => setStatus(''), 1800);
-});
 
 /* =========================================================
-   ВСПОМОГАТЕЛЬНОЕ
+   ГОЛОС
    ========================================================= */
-function addMsg(type, text) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + type;
-  div.textContent = text;
-  chatLog.appendChild(div);
-  chatLog.scrollTop = chatLog.scrollHeight;
+const synth = window.speechSynthesis;
+let voices = [];
+synth.onvoiceschanged = () => { voices = synth.getVoices(); };
+setTimeout(() => { voices = synth.getVoices(); }, 1000);
+
+function unlockSpeech() {
+  if (speechUnlocked) return;
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); speechUnlocked = true; } catch(e){}
 }
-let statusTimer = null;
-function setStatus(text, persist = false) {
-  clearTimeout(statusTimer);
-  if (!text) { statusBar.classList.remove('show'); return; }
-  statusBar.textContent = text;
-  statusBar.classList.add('show');
-  if (!persist) statusTimer = setTimeout(() => statusBar.classList.remove('show'), 2000);
+
+function speak(text, faction) {
+  if (!text) return;
+  try { synth.cancel(); } catch(e) {}
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ru-RU';
+  let voice = voices.find(v => v.lang.includes('ru'));
+  if (voice) u.voice = voice;
+
+  // Настройка голоса под каждую фракцию
+  if (faction === 'cubes') { u.pitch = 0.5; u.rate = 0.9; }
+  else if (faction === 'arta') { u.pitch = 1.2; u.rate = 1.0; }
+  else if (faction === 'treugly') { u.pitch = 0.8; u.rate = 0.8; }
+  
+  synth.speak(u);
 }
-muteBtn.addEventListener('click', () => {
-  isMuted = !isMuted;
-  muteBtn.textContent = isMuted ? '🔇' : '🔊';
-  muteBtn.classList.toggle('muted', isMuted);
-  if (isMuted) synth.cancel();
+
+/* =========================================================
+   МИКРОФОН (STT)
+   ========================================================= */
+async function startRecording() {
+  try {
+    if (!micStream) micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    let mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+    mediaRecorder = new MediaRecorder(micStream, { mimeType });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, { type: mimeType });
+      const formData = new FormData();
+      formData.append('file', blob, 'rec.' + (mimeType.includes('mp4') ? 'mp4' : 'webm'));
+      formData.append('model', STT_MODEL);
+      formData.append('language', 'ru');
+      try {
+        const res = await fetch(STT_URL, { method: 'POST', headers: { 'Authorization': 'Bearer ' + API_KEY }, body: formData });
+        const data = await res.json();
+        if (data.text) sendMessage(data.text.trim());
+      } catch (e) {}
+    };
+    mediaRecorder.start();
+    isRecording = true;
+    micBtn.classList.add('recording');
+  } catch (e) { alert('Нет доступа к микрофону'); }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  isRecording = false;
+  micBtn.classList.remove('recording');
+}
+
+/* =========================================================
+   СОБЫТИЯ
+   ========================================================= */
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (isBusy) return;
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFaction = tab.dataset.faction;
+    subscribeToFaction(currentFaction);
+  });
 });
-resetBtn.addEventListener('click', () => {
-  synth.cancel();
-  history = history.slice(0, 1);
-  chatLog.innerHTML = '';
-  addMsg('system', 'Начинаем заново.');
-  greetUser();
+
+sendBtn.addEventListener('click', () => {
+  unlockSpeech();
+  const text = textInput.value.trim();
+  if (text) { textInput.value = ''; sendMessage(text); }
 });
+
+textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+micBtn.addEventListener('click', () => { unlockSpeech(); if (isRecording) stopRecording(); else startRecording(); });
+
+// Запуск
+initUser();
+subscribeToFaction('arta'); // Стартуем с Арты
 </script>
 </body>
 </html>
