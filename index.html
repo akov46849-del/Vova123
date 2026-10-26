@@ -1,730 +1,693 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Казино Арты — Колесо</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Russo+One&display=swap" rel="stylesheet" />
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0a0a0f;
-            color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 30%, #1a0f0a, #0a0a0f 70%);
-            z-index: -2;
-        }
-        .particles {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            pointer-events: none;
-            background-image: 
-                radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.3), transparent),
-                radial-gradient(2px 2px at 40% 70%, rgba(255,215,0,0.2), transparent),
-                radial-gradient(3px 3px at 60% 20%, rgba(255,215,0,0.4), transparent),
-                radial-gradient(2px 2px at 80% 60%, rgba(255,215,0,0.2), transparent),
-                radial-gradient(2px 2px at 10% 90%, rgba(255,215,0,0.3), transparent),
-                radial-gradient(2px 2px at 90% 10%, rgba(255,215,0,0.3), transparent);
-            background-size: 200% 200%;
-            animation: twinkle 8s ease-in-out infinite alternate;
-        }
-        @keyframes twinkle {
-            0% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emma — твой голосовой репетитор</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh; display: flex; justify-content: center; align-items: center;
+    padding: 16px; color: #333;
+  }
+  .card {
+    background: #fff; border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    width: 100%; max-width: 460px; overflow: hidden;
+    display: flex; flex-direction: column;
+    height: 92vh; max-height: 820px;
+  }
+  #setupScreen {
+    padding: 32px 24px; display: flex; flex-direction: column; gap: 18px;
+    justify-content: center; height: 100%; overflow-y: auto;
+  }
+  #setupScreen h1 {
+    font-size: 24px; text-align: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #setupScreen p.subtitle { text-align: center; color: #888; font-size: 14px; margin-top: -10px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; font-weight: 600; color: #555; }
+  .field select {
+    padding: 12px 14px; border-radius: 12px; border: 2px solid #e0e0e0;
+    font-size: 15px; background: #fafafa; cursor: pointer;
+  }
+  #startBtn {
+    padding: 14px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+  }
+  #warning {
+    background: #fff3cd; border: 1px solid #ffeeba; color: #856404;
+    padding: 10px; border-radius: 10px; font-size: 13px; line-height: 1.4;
+    display: none;
+  }
 
-        .container {
-            max-width: 900px;
-            width: 95%;
-            margin: 20px auto;
-            background: rgba(10, 10, 15, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 215, 0, 0.15);
-            border-radius: 40px;
-            padding: 25px 30px 35px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            position: relative;
-        }
+  #chatScreen { display: none; flex-direction: column; height: 100%; }
+  header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex; justify-content: center; align-items: center;
+    font-size: 22px; border: 2px solid rgba(255,255,255,0.5);
+  }
+  .avatar.speaking { animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .header-info { flex: 1; min-width: 0; }
+  .header-info .name { font-size: 16px; font-weight: 700; }
+  .header-info .status { font-size: 12px; opacity: 0.9; }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-            margin-bottom: 25px;
-        }
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 900;
-            background: linear-gradient(45deg, #ffd700, #ff6a00);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 3px;
-        }
-        .logo i {
-            -webkit-text-fill-color: initial;
-            color: #ffd700;
-            margin-right: 8px;
-        }
-        .balance-box {
-            background: rgba(255, 215, 0, 0.08);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 30px;
-            padding: 8px 22px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .balance-box i { color: #ffd700; }
-        .balance-box span { color: #ffd700; }
+  .icon-btn {
+    background: rgba(255,255,255,0.2); border: none; color: #fff;
+    min-width: 36px; height: 36px; padding: 0 8px; border-radius: 18px;
+    font-size: 13px; cursor: pointer; font-weight: 600;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.35); }
+  .icon-btn.muted { background: rgba(0,0,0,0.35); }
 
-        .game-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .wheel-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 550px;
-            margin: 0 auto 20px;
-        }
-        canvas#wheelCanvas {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.2), 0 0 100px rgba(255, 215, 0, 0.05);
-        }
+  #chatLog {
+    flex: 1; overflow-y: auto; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    background: #f7f7fb;
+  }
+  .msg {
+    max-width: 82%; padding: 10px 14px; border-radius: 16px;
+    font-size: 15px; line-height: 1.4; word-wrap: break-word;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .msg.user { align-self: flex-end; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot  { align-self: flex-start; background: #fff; color: #333; border: 1px solid #e6e6ee; border-bottom-left-radius: 4px; }
+  .msg.system { align-self: center; background: transparent; color: #999; font-size: 12px; font-style: italic; padding: 4px; }
+  .msg .translation { display: block; margin-top: 6px; font-size: 13px; color: #7a5cff; font-style: italic; }
 
-        .multiplier-selector {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            margin: 10px 0 20px;
-            width: 100%;
-        }
-        .multiplier-btn {
-            background: transparent;
-            border: 2px solid rgba(255, 215, 0, 0.2);
-            color: #aaa;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            padding: 8px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-        }
-        .multiplier-btn:hover {
-            border-color: rgba(255, 215, 0, 0.5);
-            color: #fff;
-        }
-        .multiplier-btn.active {
-            border-color: #ffd700;
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
-        }
+  /* индикатор уровня микрофона */
+  #levelWrap {
+    display: none; padding: 6px 14px; background: #fff;
+    border-top: 1px solid #eee; align-items: center; gap: 8px;
+  }
+  #levelWrap.show { display: flex; }
+  #levelBar {
+    flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden;
+  }
+  #levelFill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #4cd964, #ffcc00, #ff3b30);
+    transition: width 0.06s linear;
+  }
+  #levelWrap .lbl { font-size: 11px; color: #888; min-width: 90px; }
 
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin: 10px 0 15px;
-            width: 100%;
-        }
-        .bet-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 5px 18px 5px 22px;
-            border-radius: 40px;
-            border: 1px solid rgba(255, 215, 0, 0.15);
-        }
-        .bet-group label {
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-        .bet-group input {
-            background: transparent;
-            border: none;
-            color: #ffd700;
-            font-size: 1.2rem;
-            font-weight: 700;
-            width: 80px;
-            font-family: 'Orbitron', sans-serif;
-            outline: none;
-            text-align: center;
-        }
-        .bet-group input::-webkit-inner-spin-button { -webkit-appearance: none; }
-        .bet-group input:focus { border-bottom: 1px solid #ffd700; }
+  .input-row {
+    padding: 10px 12px; background: #fff; border-top: 1px solid #eee;
+    display: flex; gap: 8px; align-items: center;
+  }
+  #textInput {
+    flex: 1; padding: 10px 14px; border-radius: 20px;
+    border: 2px solid #e0e0e0; font-size: 15px; outline: none;
+  }
+  #textInput:focus { border-color: #764ba2; }
+  #sendBtn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; border: none; width: 42px; height: 42px;
+    border-radius: 50%; font-size: 18px; cursor: pointer;
+  }
 
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .spin-btn {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            border: none;
-            color: #0a0a0f;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 1.2rem;
-            padding: 12px 32px;
-            border-radius: 40px;
-            cursor: pointer;
-            letter-spacing: 2px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
-        }
-        .spin-btn:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
-        }
-        .spin-btn:disabled {
-            opacity: 0.5;
-            transform: scale(0.98);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+  .controls {
+    padding: 10px 16px 14px; background: #fff;
+    display: flex; justify-content: center; align-items: center; gap: 14px;
+  }
+  #langToggle {
+    padding: 8px 14px; border-radius: 20px; border: 2px solid #764ba2;
+    background: #fff; color: #764ba2; font-weight: 700; font-size: 13px;
+    cursor: pointer; min-width: 70px;
+  }
+  #micBtn {
+    width: 66px; height: 66px; border-radius: 50%; border: none;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; font-size: 28px; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(118,75,162,0.4);
+    display: flex; justify-content: center; align-items: center;
+  }
+  #micBtn:hover { transform: scale(1.05); }
+  #micBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #micBtn.listening {
+    background: linear-gradient(135deg, #ff5e7e, #ff2d55);
+    animation: pulse 1s infinite;
+  }
 
-        .boost-btn {
-            background: transparent;
-            border: 2px solid #ff6a00;
-            color: #ff6a00;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            padding: 12px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-            box-shadow: 0 0 20px rgba(255, 100, 0, 0.1);
-        }
-        .boost-btn:hover:not(:disabled) {
-            background: rgba(255, 100, 0, 0.15);
-            transform: scale(1.05);
-            box-shadow: 0 0 40px rgba(255, 100, 0, 0.3);
-        }
-        .boost-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            transform: scale(0.95);
-        }
-        .boost-btn.active {
-            background: rgba(255, 100, 0, 0.2);
-            border-color: #ffd700;
-            color: #ffd700;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
-        }
+  #statusBar {
+    position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); color: #fff;
+    padding: 8px 16px; border-radius: 20px; font-size: 13px;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    white-space: nowrap; max-width: 90%; z-index: 10;
+  }
+  #statusBar.show { opacity: 1; }
 
-        .result-box {
-            text-align: center;
-            min-height: 70px;
-            font-size: 1.1rem;
-            padding: 12px;
-            color: #ddd;
-            font-family: 'Segoe UI', sans-serif;
-            background: rgba(255, 215, 0, 0.03);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.05);
-            width: 100%;
-            max-width: 500px;
-            margin-top: 5px;
-        }
-        .result-box .win { color: #ffd700; font-weight: 700; }
-        .result-box .lose { color: #ff4466; font-weight: 700; }
-        .result-box .boost-label { color: #ff6a00; font-weight: 700; }
-
-        .footer {
-            margin-top: 25px;
-            text-align: center;
-            color: #555;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            border-top: 1px solid rgba(255, 215, 0, 0.05);
-            padding-top: 20px;
-        }
-        .footer span { color: #ffd700; }
-
-        @media (max-width: 600px) {
-            .container { padding: 15px; }
-            .logo { font-size: 1.3rem; }
-            .balance-box { font-size: 1rem; padding: 6px 16px; }
-            .controls { gap: 12px; }
-            .spin-btn { padding: 10px 24px; font-size: 1rem; }
-            .boost-btn { padding: 10px 18px; font-size: 0.8rem; }
-            .bet-group input { width: 60px; font-size: 1rem; }
-            .multiplier-btn { font-size: 0.8rem; padding: 6px 14px; }
-        }
-    </style>
+  /* панель отладки */
+  #debugPanel {
+    display: none; padding: 8px 12px; background: #1e1e2e; color: #a6e3a1;
+    font-family: monospace; font-size: 11px; max-height: 100px;
+    overflow-y: auto; line-height: 1.4;
+  }
+  #debugPanel.show { display: block; }
+  #debugPanel .err { color: #f38ba8; }
+  #debugPanel .info { color: #89b4fa; }
+</style>
 </head>
 <body>
-    <div class="particles"></div>
-    <div class="container">
-        <header class="header">
-            <div class="logo"><i class="fas fa-bolt"></i> АРТА КАЗИНО</div>
-            <div class="balance-box">
-                <i class="fas fa-coins"></i> Баланс: <span id="balanceDisplay">10000</span>
-            </div>
-        </header>
+<div class="card">
 
-        <div class="game-area">
-            <div class="wheel-wrapper">
-                <canvas id="wheelCanvas" width="600" height="600"></canvas>
-            </div>
+  <div id="setupScreen">
+    <h1>👩‍🏫 Emma</h1>
+    <p class="subtitle">Твой голосовой репетитор английского</p>
+    <div id="warning"></div>
 
-            <div class="multiplier-selector" id="multiplierSelector">
-                <button class="multiplier-btn active" data-mult="2">x2</button>
-                <button class="multiplier-btn" data-mult="3">x3</button>
-                <button class="multiplier-btn" data-mult="5">x5</button>
-                <button class="multiplier-btn" data-mult="10">x10</button>
-                <button class="multiplier-btn" data-mult="20">x20</button>
-                <button class="multiplier-btn" data-mult="50">x50</button>
-            </div>
-
-            <div class="controls">
-                <div class="bet-group">
-                    <label><i class="fas fa-gem"></i> Ставка</label>
-                    <input type="number" id="betInput" value="50" min="1" step="1" />
-                </div>
-                <div class="action-buttons">
-                    <button class="spin-btn" id="spinBtn"><i class="fas fa-sync-alt"></i> КРУТИТЬ</button>
-                    <button class="boost-btn" id="boostBtn"><i class="fas fa-bolt"></i> ПОДКРУТКА (x15)</button>
-                </div>
-            </div>
-
-            <div class="result-box" id="resultBox">
-                <span id="resultText">Выберите множитель и нажмите «Крутить»</span>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>© 2026 <span>Арта</span> — удача на твоей стороне. Играй ответственно (всё понарошку).</p>
-        </div>
+    <div class="field">
+      <label for="learnLang">Какой язык изучаешь?</label>
+      <select id="learnLang">
+        <option value="English" selected>English (Английский)</option>
+        <option value="Spanish">Spanish (Испанский)</option>
+        <option value="German">German (Немецкий)</option>
+        <option value="French">French (Французский)</option>
+        <option value="Italian">Italian (Итальянский)</option>
+      </select>
     </div>
 
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script>
-        (function() {
-            // ---------- Константы и состояние ----------
-            const canvas = document.getElementById('wheelCanvas');
-            const ctx = canvas.getContext('2d');
+    <div class="field">
+      <label for="nativeLang">Твой родной язык?</label>
+      <select id="nativeLang">
+        <option value="Russian" selected>Русский</option>
+        <option value="Ukrainian">Українська</option>
+        <option value="Kazakh">Қазақша</option>
+        <option value="English">English</option>
+        <option value="Spanish">Español</option>
+      </select>
+    </div>
 
-            let state = {
-                balance: 10000,
-                currentAngle: 0,          // сырой угол (может быть > 2π)
-                isSpinning: false,
-                selectedMultiplier: 2,
-                animationId: null,
-                boostActive: false,       // активна ли подкрутка
-                centerX: 300,
-                centerY: 300,
-                radius: 260,
-                sectors: [] // массив { start, end, type, label, color }
-            };
+    <button id="startBtn">Начать общение 💬</button>
+  </div>
 
-            // DOM
-            const balanceDisplay = document.getElementById('balanceDisplay');
-            const betInput = document.getElementById('betInput');
-            const spinBtn = document.getElementById('spinBtn');
-            const boostBtn = document.getElementById('boostBtn');
-            const resultText = document.getElementById('resultText');
-            const multiplierBtns = document.querySelectorAll('.multiplier-btn');
+  <div id="chatScreen">
+    <header>
+      <div class="avatar" id="avatar">👩‍🏫</div>
+      <div class="header-info">
+        <div class="name">Emma</div>
+        <div class="status" id="emmaStatus">Онлайн</div>
+      </div>
+      <button class="icon-btn" id="muteBtn" title="Голос Emma">🔊</button>
+      <button class="icon-btn" id="debugBtn" title="Отладка">🐞</button>
+      <button class="icon-btn" id="resetBtn" title="Заново">↻</button>
+    </header>
 
-            // ---------- Вспомогательные функции ----------
-            function normalizeAngle(angle) {
-                angle = angle % (2 * Math.PI);
-                if (angle < 0) angle += 2 * Math.PI;
-                return angle;
-            }
+    <div id="chatLog"></div>
 
-            // ---------- Расчёт секторов ----------
-            function buildSectors(mult) {
-                const multAngle = (2 * Math.PI) / mult;
-                const zeroAngle = 2 * Math.PI - multAngle;
-                const centerZero = -Math.PI / 2;
-                const zeroStart = centerZero - zeroAngle / 2;
-                const zeroEnd = centerZero + zeroAngle / 2;
-                const multStart = zeroEnd;
-                let multEnd = zeroStart + 2 * Math.PI;
-                return [
-                    { start: zeroStart, end: zeroEnd, type: 'zero', label: 'x0', color: '#2a2a3a' },
-                    { start: multStart, end: multEnd, type: 'mult', label: 'x' + mult, color: '#3a7a5a' }
-                ];
-            }
+    <div id="levelWrap">
+      <span class="lbl">Уровень микрофона</span>
+      <div id="levelBar"><div id="levelFill"></div></div>
+    </div>
 
-            // ---------- Обновление геометрии ----------
-            function updateGeometry() {
-                const w = canvas.width;
-                const h = canvas.height;
-                state.centerX = w / 2;
-                state.centerY = h / 2;
-                state.radius = Math.min(w, h) * 0.42;
-            }
+    <div id="debugPanel"></div>
 
-            // ---------- Отрисовка ----------
-            function drawWheel() {
-                const { centerX, centerY, radius, sectors } = state;
-                const angle = normalizeAngle(state.currentAngle);
+    <div class="input-row">
+      <input type="text" id="textInput" placeholder="Или напиши сообщение...">
+      <button id="sendBtn">➤</button>
+    </div>
 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.shadowColor = 'rgba(255,215,0,0.15)';
-                ctx.shadowBlur = 30;
+    <div class="controls">
+      <button id="langToggle" title="Язык ввода">EN 🎤</button>
+      <button id="micBtn" title="Нажми и говори">🎤</button>
+      <span style="width:70px"></span>
+    </div>
 
-                sectors.forEach(seg => {
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.arc(centerX, centerY, radius, seg.start, seg.end);
-                    ctx.closePath();
-                    ctx.fillStyle = seg.color;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = 'rgba(255,215,0,0.2)';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                    ctx.shadowBlur = 30;
+    <div id="statusBar"></div>
+  </div>
 
-                    let mid = (seg.start + seg.end) / 2;
-                    let midNorm = normalizeAngle(mid);
-                    const textR = radius * 0.7;
-                    const x = centerX + Math.cos(midNorm) * textR;
-                    const y = centerY + Math.sin(midNorm) * textR;
+</div>
 
-                    ctx.save();
-                    ctx.translate(x, y);
-                    let rot = midNorm;
-                    if (rot > Math.PI/2 && rot < 3*Math.PI/2) rot += Math.PI;
-                    ctx.rotate(rot);
-                    ctx.font = 'bold 20px Orbitron, sans-serif';
-                    ctx.fillStyle = (seg.type === 'zero') ? '#fff' : '#ffd700';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(seg.label, 0, 0);
-                    ctx.restore();
-                });
+<script>
+/* =========================================================
+   НАСТРОЙКИ
+   ========================================================= */
+const API_KEY = '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';
+const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const MODEL   = 'llama-3.3-70b-versatile';
 
-                ctx.shadowBlur = 0;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.strokeStyle = 'rgba(255,215,0,0.4)';
-                ctx.lineWidth = 6;
-                ctx.stroke();
-                ctx.shadowBlur = 30;
-                ctx.shadowColor = 'rgba(255,215,0,0.1)';
+/* =========================================================
+   СОСТОЯНИЕ
+   ========================================================= */
+let learningLang = 'English';
+let nativeLang   = 'Russian';
+let history      = [];
+let isMuted      = false;
+let isBusy       = false;
+let micStream    = null;
+let audioCtx     = null;
+let analyser     = null;
+let levelRAF     = null;
+let inputLangMode = 'learn';
+let recognitionActive = false;
 
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
-                ctx.fillStyle = '#ffd700';
-                ctx.shadowBlur = 40;
-                ctx.shadowColor = 'rgba(255,215,0,0.6)';
-                ctx.fill();
-                ctx.shadowBlur = 0;
+const LANG_CODES = {
+  'English': 'en-US', 'Spanish': 'es-ES', 'German': 'de-DE',
+  'French': 'fr-FR', 'Italian': 'it-IT',
+  'Russian': 'ru-RU', 'Ukrainian': 'uk-UA', 'Kazakh': 'kk-KZ'
+};
+const LANG_SHORT = {
+  'English':'EN','Spanish':'ES','German':'DE','French':'FR',
+  'Italian':'IT','Russian':'RU','Ukrainian':'UA','Kazakh':'KZ'
+};
 
-                drawArrow(angle);
-            }
+/* =========================================================
+   DOM
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const setupScreen  = $('setupScreen');
+const chatScreen   = $('chatScreen');
+const startBtn     = $('startBtn');
+const learnLangSel = $('learnLang');
+const nativeLangSel= $('nativeLang');
+const chatLog      = $('chatLog');
+const micBtn       = $('micBtn');
+const muteBtn      = $('muteBtn');
+const resetBtn     = $('resetBtn');
+const debugBtn     = $('debugBtn');
+const avatar       = $('avatar');
+const emmaStatus   = $('emmaStatus');
+const statusBar    = $('statusBar');
+const textInput    = $('textInput');
+const sendBtn      = $('sendBtn');
+const langToggle   = $('langToggle');
+const warningBox   = $('warning');
+const levelWrap    = $('levelWrap');
+const levelFill    = $('levelFill');
+const debugPanel   = $('debugPanel');
 
-            function drawArrow(angle) {
-                const { centerX, centerY, radius } = state;
-                const arrowLength = radius * 0.2;
-                const baseWidth = 18;
-                const tipOffset = 6;
+/* =========================================================
+   ОТЛАДКА
+   ========================================================= */
+function log(msg, kind = 'info') {
+  const line = document.createElement('div');
+  line.className = kind;
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  debugPanel.appendChild(line);
+  debugPanel.scrollTop = debugPanel.scrollHeight;
+  console.log(msg);
+}
+debugBtn.addEventListener('click', () => debugPanel.classList.toggle('show'));
 
-                const tipX = centerX + (radius + tipOffset) * Math.cos(angle);
-                const tipY = centerY + (radius + tipOffset) * Math.sin(angle);
-                const backX = centerX + (radius + tipOffset - arrowLength) * Math.cos(angle);
-                const backY = centerY + (radius + tipOffset - arrowLength) * Math.sin(angle);
+/* =========================================================
+   ПРОВЕРКИ
+   ========================================================= */
+const isSecure = location.protocol === 'https:' ||
+                 location.hostname === 'localhost' ||
+                 location.hostname === '127.0.0.1';
 
-                const perpX = -Math.sin(angle);
-                const perpY = Math.cos(angle);
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-                const p1x = backX + baseWidth/2 * perpX;
-                const p1y = backY + baseWidth/2 * perpY;
-                const p2x = backX - baseWidth/2 * perpX;
-                const p2y = backY - baseWidth/2 * perpY;
+if (!isSecure) {
+  warningBox.style.display = 'block';
+  warningBox.innerHTML = '⚠️ Открыт файл как <b>file://</b> — микрофон работать не будет.<br>' +
+    'В терминале: <code>python -m http.server 8000</code><br>' +
+    'и открой <b>http://localhost:8000</b>';
+}
+if (!SpeechRecognition) {
+  warningBox.style.display = 'block';
+  warningBox.innerHTML += '<br>⚠️ Браузер не поддерживает распознавание речи. Используй Chrome или Edge.';
+}
 
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(tipX, tipY);
-                ctx.lineTo(p1x, p1y);
-                ctx.lineTo(p2x, p2y);
-                ctx.closePath();
+const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+if (recognition) {
+  recognition.continuous = false;
+  recognition.interimResults = true;   // важно: получаем промежуточные результаты
+  recognition.maxAlternatives = 1;
+  recognition.lang = 'en-US';
+}
 
-                ctx.fillStyle = '#ffd700';
-                ctx.shadowColor = 'rgba(255,215,0,0.9)';
-                ctx.shadowBlur = 25;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = '#ffaa00';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.restore();
-            }
+const synth = window.speechSynthesis;
 
-            // ---------- Определение сектора по углу (для проверки) ----------
-            function getSector(rawAngle) {
-                const a = normalizeAngle(rawAngle);
-                const zeroStartNorm = normalizeAngle(state.sectors[0].start);
-                const zeroEndNorm = normalizeAngle(state.sectors[0].end);
-                if (zeroStartNorm < zeroEndNorm) {
-                    if (a >= zeroStartNorm && a <= zeroEndNorm) return 'zero';
-                } else {
-                    if (a >= zeroStartNorm || a <= zeroEndNorm) return 'zero';
-                }
-                return 'mult';
-            }
+/* =========================================================
+   ЖЕНСКИЙ ГОЛОС
+   ========================================================= */
+let femaleVoice = null;
+function pickFemaleVoice() {
+  const voices = synth.getVoices();
+  if (!voices.length) return;
+  const langCode = (LANG_CODES[learningLang] || 'en-US').split('-')[0];
+  const byLang = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
+  const femaleNames = ['female','woman','zira','samantha','victoria','karen','moira','tessa','google uk english female','google us english','milena','yelda','alice','elsa','paulina','lucia','katya'];
+  const isFemale = v => femaleNames.some(n => v.name.toLowerCase().includes(n));
+  femaleVoice = byLang.find(isFemale) || byLang[0] || voices.find(isFemale) || voices[0];
+  log('Голос Emma: ' + (femaleVoice ? femaleVoice.name : 'не найден'));
+}
+synth.onvoiceschanged = pickFemaleVoice;
+pickFemaleVoice();
 
-            // ---------- Генерация целевого угла с учётом подкрутки ----------
-            function getTargetAngle(startAngle, boost) {
-                const extraRotations = (5 + Math.random() * 5) * 2 * Math.PI;
-                let targetNormalized;
-                if (boost) {
-                    // с вероятностью 15/16 — в сектор mult, иначе в zero
-                    if (Math.random() < 15/16) {
-                        // сектор mult
-                        const multStart = state.sectors[1].start;
-                        const multEnd = state.sectors[1].end;
-                        // Угол в пределах [multStart, multEnd] (может быть > 2π)
-                        // Приводим к [0, 2π) для выбора
-                        let s = normalizeAngle(multStart);
-                        let e = normalizeAngle(multEnd);
-                        if (s < e) {
-                            targetNormalized = s + Math.random() * (e - s);
-                        } else {
-                            // пересекает 0
-                            if (Math.random() < 0.5) {
-                                targetNormalized = s + Math.random() * (2 * Math.PI - s);
-                            } else {
-                                targetNormalized = Math.random() * e;
-                            }
-                        }
-                    } else {
-                        // сектор zero
-                        const zeroStart = state.sectors[0].start;
-                        const zeroEnd = state.sectors[0].end;
-                        let s = normalizeAngle(zeroStart);
-                        let e = normalizeAngle(zeroEnd);
-                        if (s < e) {
-                            targetNormalized = s + Math.random() * (e - s);
-                        } else {
-                            if (Math.random() < 0.5) {
-                                targetNormalized = s + Math.random() * (2 * Math.PI - s);
-                            } else {
-                                targetNormalized = Math.random() * e;
-                            }
-                        }
-                    }
-                } else {
-                    // без подкрутки — равномерно по всему кругу
-                    targetNormalized = Math.random() * 2 * Math.PI;
-                }
+/* =========================================================
+   СТАРТ
+   ========================================================= */
+startBtn.addEventListener('click', async () => {
+  learningLang = learnLangSel.value;
+  nativeLang   = nativeLangSel.value;
 
-                // Вычисляем количество полных оборотов от startAngle + extraRotations
-                const base = startAngle + extraRotations;
-                const revolutions = Math.floor(base / (2 * Math.PI));
-                const targetAngle = revolutions * 2 * Math.PI + targetNormalized;
-                // Убедимся, что targetAngle > startAngle (добавим лишний оборот при необходимости)
-                if (targetAngle <= startAngle) {
-                    return targetAngle + 2 * Math.PI;
-                }
-                return targetAngle;
-            }
+  history = [{
+    role: 'system',
+    content:
+`You are Emma, a warm and friendly female ${learningLang} tutor. The user's native language is ${nativeLang}.
 
-            // ---------- Обновление UI ----------
-            function updateMultiplier(mult) {
-                if (state.isSpinning) return;
-                state.selectedMultiplier = mult;
-                state.sectors = buildSectors(mult);
-                drawWheel();
-                updatePotentialWin();
-                multiplierBtns.forEach(btn => {
-                    btn.classList.toggle('active', parseInt(btn.dataset.mult) === mult);
-                });
-            }
+RULES:
+1. Main reply ALWAYS in ${learningLang} (short, 1-3 sentences, natural, friendly).
+2. If user writes/speaks in ${nativeLang} — understand them, but reply in ${learningLang}.
+3. After your main reply, if worth explaining or a new word — add a short note in ${nativeLang} on a new line in EXACT format:
+[${nativeLang}] твоё краткое пояснение или перевод.
 
-            function updatePotentialWin() {
-                const bet = parseInt(betInput.value) || 0;
-                const win = bet * state.selectedMultiplier;
-                let boostText = state.boostActive ? ' <span class="boost-label">(Подкрутка x15 активна!)</span>' : '';
-                if (!state.isSpinning) {
-                    resultText.innerHTML = `Ставка ${bet} × ${state.selectedMultiplier} = <span class="win">${win}</span> (если выпадет x${state.selectedMultiplier})${boostText}`;
-                }
-            }
+4. If the user made a grammar/vocab mistake, gently correct it inside the note in ${nativeLang}.
+5. ALWAYS end with a short follow-up question in ${learningLang}.
+6. Talk about everyday things: day, hobbies, food, travel, movies, dreams.
+7. Never say you're an AI. You are Emma.`
+  }];
 
-            function updateBalance() {
-                balanceDisplay.textContent = state.balance;
-            }
+  pickFemaleVoice();
+  setupScreen.style.display = 'none';
+  chatScreen.style.display  = 'flex';
+  addMsg('system', `Ты изучаешь ${learningLang}. Emma говорит на ${learningLang} и поясняет на ${nativeLang}.`);
+  updateLangToggle();
 
-            function updateBoostUI() {
-                if (state.boostActive) {
-                    boostBtn.classList.add('active');
-                    boostBtn.disabled = true;
-                } else {
-                    boostBtn.classList.remove('active');
-                    boostBtn.disabled = state.isSpinning;
-                }
-                updatePotentialWin();
-            }
+  log('Язык: ' + learningLang + ' / родной: ' + nativeLang);
+  await initMic();
 
-            // ---------- Вращение (новая анимация с интерполяцией к целевому углу) ----------
-            function startSpin() {
-                if (state.isSpinning) return;
-                const bet = parseInt(betInput.value);
-                if (isNaN(bet) || bet <= 0) {
-                    resultText.innerHTML = '⚠️ Введите корректную положительную ставку';
-                    return;
-                }
-                if (bet > state.balance) {
-                    resultText.innerHTML = '⚠️ Недостаточно средств!';
-                    return;
-                }
+  greetUser();
+});
 
-                if (state.animationId) {
-                    cancelAnimationFrame(state.animationId);
-                    state.animationId = null;
-                }
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ МИКРОФОНА + ИНДИКАТОР УРОВНЯ
+   ========================================================= */
+async function initMic() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    log('getUserMedia не поддерживается', 'err');
+    setStatus('Браузер не даёт доступ к микрофону API', true);
+    return false;
+  }
+  if (micStream) return true;
 
-                state.balance -= bet;
-                updateBalance();
+  try {
+    log('Запрашиваю доступ к микрофону...');
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
+    log('✓ Доступ к микрофону получен', 'info');
 
-                state.isSpinning = true;
-                spinBtn.disabled = true;
-                boostBtn.disabled = true;
+    // индикатор уровня
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    levelWrap.classList.add('show');
+    startLevelMeter();
 
-                const boostUsed = state.boostActive;
-                state.boostActive = false;
-                updateBoostUI();
+    return true;
+  } catch (e) {
+    log('✗ Ошибка микрофона: ' + e.name + ' — ' + e.message, 'err');
+    let m = 'Не удалось получить доступ к микрофону: ' + e.name;
+    if (e.name === 'NotAllowedError') m = 'Ты запретил доступ к микрофону. Разреши в настройках сайта.';
+    if (e.name === 'NotFoundError')   m = 'Микрофон не найден.';
+    if (e.name === 'NotReadableError')m = 'Микрофон занят другим приложением.';
+    setStatus(m, true);
+    setTimeout(() => setStatus(''), 4000);
+    return false;
+  }
+}
 
-                const startAngle = state.currentAngle;
-                const targetAngle = getTargetAngle(startAngle, boostUsed);
+function startLevelMeter() {
+  const data = new Uint8Array(analyser.fftSize);
+  const tick = () => {
+    analyser.getByteTimeDomainData(data);
+    let peak = 0;
+    for (let i = 0; i < data.length; i++) {
+      const v = Math.abs(data[i] - 128);
+      if (v > peak) peak = v;
+    }
+    const pct = Math.min(100, Math.round(peak / 128 * 100 * 2.5));
+    levelFill.style.width = pct + '%';
+    levelRAF = requestAnimationFrame(tick);
+  };
+  tick();
+}
 
-                // Сохраняем целевой угол для проверки
-                const duration = 7000;
-                const startTime = performance.now();
+/* =========================================================
+   ПРИВЕТСТВИЕ
+   ========================================================= */
+async function greetUser() {
+  setStatus('Emma думает...', true);
+  const reply = await askAI('(The user just joined. Greet them warmly in ' + learningLang + ' and ask one simple question. Include a short [' + nativeLang + '] line with translation.)');
+  renderBotMessage(reply);
+  await speak(reply);
+}
 
-                resultText.innerHTML = '🌀 Стрелка крутится... 7 секунд' + (boostUsed ? ' <span class="boost-label">(Подкрутка активна!)</span>' : '');
+/* =========================================================
+   МИКРОФОН — нажатие кнопки
+   ========================================================= */
+micBtn.addEventListener('click', async () => {
+  if (isBusy || !recognition) return;
 
-                function easeOutCubic(t) {
-                    return 1 - Math.pow(1 - t, 3);
-                }
+  if (recognitionActive) {
+    try { recognition.stop(); } catch(e){}
+    return;
+  }
 
-                function animate(timestamp) {
-                    const elapsed = timestamp - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = easeOutCubic(progress);
-                    const current = startAngle + (targetAngle - startAngle) * eased;
-                    state.currentAngle = current;
-                    drawWheel();
+  const ok = await initMic();
+  if (!ok) return;
 
-                    if (progress < 1) {
-                        state.animationId = requestAnimationFrame(animate);
-                    } else {
-                        // Фиксируем точно targetAngle
-                        state.currentAngle = targetAngle;
-                        drawWheel();
-                        // Определяем сектор (для информации)
-                        const sector = getSector(targetAngle);
-                        let msg = '';
-                        if (sector === 'zero') {
-                            msg = `💔 Проигрыш! Выпал x0. Ставка сгорела.`;
-                            resultText.innerHTML = `<span class="lose">${msg}</span>`;
-                        } else {
-                            const winAmount = bet * state.selectedMultiplier;
-                            state.balance += winAmount;
-                            updateBalance();
-                            msg = `🎉 Выигрыш! x${state.selectedMultiplier} = ${winAmount} денег!`;
-                            if (boostUsed) msg += ' <span class="boost-label">(Подкрутка сработала!)</span>';
-                            resultText.innerHTML = `<span class="win">${msg}</span>`;
-                        }
-                        state.isSpinning = false;
-                        spinBtn.disabled = false;
-                        boostBtn.disabled = false;
-                        state.animationId = null;
-                        updateBoostUI();
-                    }
-                }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
-                state.animationId = requestAnimationFrame(animate);
-            }
+  recognition.lang = LANG_CODES[inputLangMode === 'learn' ? learningLang : nativeLang] || 'en-US';
+  log('Старт распознавания, язык: ' + recognition.lang);
 
-            // ---------- Активация подкрутки ----------
-            function activateBoost() {
-                if (state.isSpinning) return;
-                if (state.boostActive) return;
-                state.boostActive = true;
-                updateBoostUI();
-                resultText.innerHTML = '⚡ Подкрутка активирована! Следующий спин увеличит шанс выигрыша в 15 раз.';
-            }
+  try {
+    recognition.start();
+  } catch (e) {
+    log('Ошибка start(): ' + e.message, 'err');
+  }
+});
 
-            // ---------- Инициализация ----------
-            function init() {
-                canvas.width = 600;
-                canvas.height = 600;
-                updateGeometry();
+if (recognition) {
+  recognition.onstart = () => {
+    recognitionActive = true;
+    micBtn.classList.add('listening');
+    micBtn.textContent = '⏹';
+    setStatus('Слушаю... говори', true);
+    log('✓ Распознавание запущено', 'info');
+  };
 
-                state.sectors = buildSectors(2);
-                state.currentAngle = 0;
-                drawWheel();
-                updateBalance();
-                updatePotentialWin();
-                updateBoostUI();
+  recognition.onend = () => {
+    recognitionActive = false;
+    micBtn.classList.remove('listening');
+    micBtn.textContent = '🎤';
+    log('Распознавание завершено');
+    if (!isBusy) setStatus('');
+  };
 
-                multiplierBtns.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const mult = parseInt(this.dataset.mult);
-                        updateMultiplier(mult);
-                    });
-                });
+  recognition.onaudiostart = () => log('→ Захват аудио начался');
+  recognition.onsoundstart = () => { log('→ Звук обнаружен'); setStatus('Слышу звук...', true); };
+  recognition.onspeechstart = () => { log('→ Распознаётся речь'); setStatus('Распознаю речь...', true); };
+  recognition.onspeechend = () => log('→ Речь закончилась');
+  recognition.onsoundend = () => log('→ Звук закончился');
 
-                betInput.addEventListener('input', function() {
-                    let val = parseInt(this.value);
-                    if (isNaN(val) || val < 1) this.value = 1;
-                    updatePotentialWin();
-                });
+  recognition.onerror = (e) => {
+    recognitionActive = false;
+    micBtn.classList.remove('listening');
+    micBtn.textContent = '🎤';
+    log('✗ STT ошибка: ' + e.error, 'err');
+    let m = 'Ошибка: ' + e.error;
+    if (e.error === 'not-allowed') m = 'Доступ к микрофону запрещён.';
+    if (e.error === 'no-speech')   m = 'Речь не распознана, попробуй ещё раз и говори чётче.';
+    if (e.error === 'network')     m = '⚠️ Сервис распознавания Google недоступен. Похоже, провайдер/сеть блокирует. Попробуй VPN или текстовое поле.';
+    if (e.error === 'aborted')     m = '';
+    if (m) { setStatus(m, true); setTimeout(() => setStatus(''), 5000); }
+  };
 
-                betInput.addEventListener('change', function() {
-                    let val = parseInt(this.value);
-                    if (isNaN(val) || val < 1) this.value = 1;
-                    updatePotentialWin();
-                });
+  recognition.onresult = async (event) => {
+    let finalText = '';
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalText += t;
+      else interim += t;
+    }
+    if (interim) {
+      setStatus('🎙 ' + interim, true);
+      log('Промежуточно: ' + interim);
+    }
+    if (finalText.trim()) {
+      log('✓ Финальный текст: ' + finalText);
+      await handleUserMessage(finalText.trim());
+    }
+  };
+}
 
-                spinBtn.addEventListener('click', startSpin);
-                boostBtn.addEventListener('click', activateBoost);
+/* =========================================================
+   ТЕКСТОВЫЙ ВВОД
+   ========================================================= */
+sendBtn.addEventListener('click', () => {
+  const t = textInput.value.trim();
+  if (!t || isBusy) return;
+  textInput.value = '';
+  handleUserMessage(t);
+});
+textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
 
-                window.addEventListener('resize', () => {
-                    updateGeometry();
-                    drawWheel();
-                });
-            }
+/* =========================================================
+   ОБРАБОТКА СООБЩЕНИЯ
+   ========================================================= */
+async function handleUserMessage(userText) {
+  addMsg('user', userText);
+  history.push({ role: 'user', content: userText });
 
-            init();
-        })();
-    </script>
+  isBusy = true;
+  micBtn.disabled = true;
+  setStatus('Emma думает...', true);
+
+  const reply = await askAI(null);
+  renderBotMessage(reply);
+  history.push({ role: 'assistant', content: reply });
+
+  await speak(reply);
+
+  isBusy = false;
+  micBtn.disabled = false;
+  setStatus('');
+}
+
+/* =========================================================
+   GROQ
+   ========================================================= */
+async function askAI(extraPrompt) {
+  const messages = extraPrompt
+    ? [...history, { role: 'user', content: extraPrompt }]
+    : history;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ model: MODEL, messages, temperature: 0.85, max_tokens: 260 })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      log('Groq HTTP ' + res.status + ': ' + err.slice(0,150), 'err');
+      return 'Sorry, I had a problem thinking. Try again.';
+    }
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+  } catch (e) {
+    log('Groq fetch error: ' + e.message, 'err');
+    return 'Sorry, no connection. Check the internet.';
+  }
+}
+
+/* =========================================================
+   РЕНДЕР (с русской сноской)
+   ========================================================= */
+function renderBotMessage(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const mainLines = [], noteLines = [];
+  const noteRe = new RegExp('^\\[' + nativeLang + '\\]\\s*', 'i');
+  for (const line of lines) {
+    if (noteRe.test(line)) noteLines.push(line.replace(noteRe, ''));
+    else mainLines.push(line);
+  }
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.textContent = mainLines.join(' ') || raw;
+  if (noteLines.length) {
+    const tr = document.createElement('span');
+    tr.className = 'translation';
+    tr.textContent = '🇷🇺 ' + noteLines.join(' ');
+    div.appendChild(tr);
+  }
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+/* =========================================================
+   ОЗВУЧКА
+   ========================================================= */
+function speak(text) {
+  return new Promise((resolve) => {
+    if (isMuted || !text) { resolve(); return; }
+    synth.cancel();
+    const noteRe = new RegExp('\\[' + nativeLang + '\\][^\\n]*', 'gi');
+    let spoken = text.replace(noteRe, '').replace(/\(Correct:[^)]*\)/gi, '').trim();
+    if (!spoken) { resolve(); return; }
+
+    const u = new SpeechSynthesisUtterance(spoken);
+    u.lang = LANG_CODES[learningLang] || 'en-US';
+    u.rate = 0.95; u.pitch = 1.15; u.volume = 1;
+    if (femaleVoice) u.voice = femaleVoice;
+    u.onstart = () => { avatar.classList.add('speaking'); emmaStatus.textContent = 'Говорит...'; };
+    u.onend   = () => { avatar.classList.remove('speaking'); emmaStatus.textContent = 'Онлайн'; resolve(); };
+    u.onerror = () => { avatar.classList.remove('speaking'); emmaStatus.textContent = 'Онлайн'; resolve(); };
+    synth.speak(u);
+  });
+}
+
+/* =========================================================
+   ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА
+   ========================================================= */
+function updateLangToggle() {
+  langToggle.textContent = (inputLangMode === 'learn'
+    ? LANG_SHORT[learningLang] : LANG_SHORT[nativeLang]) + ' 🎤';
+}
+langToggle.addEventListener('click', () => {
+  inputLangMode = inputLangMode === 'learn' ? 'native' : 'learn';
+  updateLangToggle();
+  log('Язык ввода: ' + (inputLangMode === 'learn' ? learningLang : nativeLang));
+  setStatus('Язык ввода: ' + (inputLangMode === 'learn' ? learningLang : nativeLang), true);
+  setTimeout(() => setStatus(''), 1800);
+});
+
+/* =========================================================
+   ВСПОМОГАТЕЛЬНОЕ
+   ========================================================= */
+function addMsg(type, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + type;
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+let statusTimer = null;
+function setStatus(text, persist = false) {
+  clearTimeout(statusTimer);
+  if (!text) { statusBar.classList.remove('show'); return; }
+  statusBar.textContent = text;
+  statusBar.classList.add('show');
+  if (!persist) statusTimer = setTimeout(() => statusBar.classList.remove('show'), 2000);
+}
+muteBtn.addEventListener('click', () => {
+  isMuted = !isMuted;
+  muteBtn.textContent = isMuted ? '🔇' : '🔊';
+  muteBtn.classList.toggle('muted', isMuted);
+  if (isMuted) synth.cancel();
+});
+resetBtn.addEventListener('click', () => {
+  synth.cancel();
+  history = history.slice(0, 1);
+  chatLog.innerHTML = '';
+  addMsg('system', 'Начинаем заново.');
+  greetUser();
+});
+</script>
 </body>
 </html>
