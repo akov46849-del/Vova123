@@ -29,6 +29,7 @@
   .role-badge { padding: 2px 8px; border-radius: 10px; font-weight: bold; }
   .role-badge.admin { background: #ff3b30; color: white; }
   .role-badge.user { background: #3a3a6a; color: #aaa; }
+  .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; }
   
   .tabs { display: flex; gap: 4px; padding: 10px 12px; background: #12122a; border-bottom: 1px solid #2a2a4a; }
   .tab {
@@ -59,10 +60,11 @@
   #micBtn.recording { background: #ff3b30; animation: pulse 1s infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-  /* Админ-панель */
-  #adminPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.98); z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
-  #adminPanel.show { display: flex; }
-  #adminPanel h2 { color: #ff3b30; margin-bottom: 15px; }
+  /* Админ-панель и Логи */
+  .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.98); z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+  .modal.show { display: flex; }
+  .modal h2 { color: #ff3b30; margin-bottom: 15px; }
+  
   .admin-user-item { display: flex; justify-content: space-between; align-items: center; background: #1e1e3a; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
   .admin-btn { background: #5a4a9a; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
   
@@ -73,7 +75,15 @@
   .danger-btn.secondary { background: #3a3a6a; }
   .danger-btn.secondary:hover { background: #2a2a5a; }
 
-  .close-admin { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 8px; border-radius: 6px; margin-top: 20px; cursor: pointer; width: 100%; }
+  .close-modal { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 8px; border-radius: 6px; margin-top: 20px; cursor: pointer; width: 100%; }
+
+  /* Стили для логов */
+  #logPanel { background: #0a0a0f; color: #00ff00; font-family: monospace; font-size: 12px; }
+  #logContent { flex: 1; overflow-y: auto; white-space: pre-wrap; line-height: 1.5; padding-bottom: 20px; }
+  .log-info { color: #89b4fa; }
+  .log-error { color: #f38ba8; }
+  .log-success { color: #a6e3a1; }
+  .log-warn { color: #f9e2af; }
 </style>
 </head>
 <body>
@@ -83,7 +93,8 @@
     <div class="user-info">
       <span id="userNameDisplay">Гость</span>
       <span id="userRoleBadge" class="role-badge user">Гость</span>
-      <button id="adminToggleBtn" style="display:none; background:none; border:none; color:#ff3b30; cursor:pointer; font-size:16px;">⚙️</button>
+      <button id="logToggleBtn" class="icon-btn" title="Логи">🐞</button>
+      <button id="adminToggleBtn" class="icon-btn" style="display:none; color:#ff3b30;" title="Админка">⚙️</button>
     </div>
   </header>
 
@@ -106,21 +117,26 @@
     <button id="sendBtn">➤</button>
   </div>
 
+  <!-- Модальное окно логов -->
+  <div id="logPanel" class="modal">
+    <h2 style="color: #89b4fa; font-family: monospace;">🐞 Панель логов</h2>
+    <div id="logContent"></div>
+    <button class="close-modal" onclick="document.getElementById('logPanel').classList.remove('show')">Закрыть</button>
+  </div>
+
   <!-- Админ панель -->
-  <div id="adminPanel">
+  <div id="adminPanel" class="modal">
     <h2>⚙️ Админ-панель</h2>
     <p style="font-size:12px; color:#aaa; margin-bottom:15px;">Список участников:</p>
     <div id="adminUserList" style="max-height: 200px; overflow-y: auto;"></div>
     
-    <!-- Опасная зона -->
     <div class="danger-zone">
       <h3>⚠️ Опасная зона</h3>
       <button class="danger-btn secondary" onclick="clearUsersList()">🗑️ Очистить только участников</button>
       <button class="danger-btn" onclick="clearEntireDB()">💀 Полностью очистить базу</button>
-      <p style="font-size:10px; color:#aaa; margin-top:5px;">Полная очистка удалит все чаты, участников и настройки. После этого первый зашедший снова станет админом.</p>
     </div>
     
-    <button class="close-admin" onclick="document.getElementById('adminPanel').classList.remove('show')">Закрыть</button>
+    <button class="close-modal" onclick="document.getElementById('adminPanel').classList.remove('show')">Закрыть</button>
   </div>
 </div>
 
@@ -138,20 +154,38 @@ const firebaseConfig = {
   appId: "1:179467663659:web:be71167fd0ffd412416d6e"
 };
 
-// ВАШ КЛЮЧ GROQ
 const API_KEY = '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'; 
 
-// ИСПОЛЬЗУЕМ ПРОКСИ ДЛЯ ОБХОДА CORS
-const CORS_PROXY = 'https://corsproxy.io/?';
-const API_URL = CORS_PROXY + encodeURIComponent('https://api.groq.com/openai/v1/chat/completions');
-const STT_URL = CORS_PROXY + encodeURIComponent('https://api.groq.com/openai/v1/audio/transcriptions');
+// Прокси для обхода CORS
+const PROXY = 'https://api.allorigins.win/raw?url=';
+const GROQ_URL = encodeURIComponent('https://api.groq.com/openai/v1/chat/completions');
+const API_URL = PROXY + GROQ_URL;
 
-// АКТУАЛЬНАЯ МОДЕЛЬ
 const MODEL   = 'openai/gpt-oss-120b'; 
-const STT_MODEL = 'whisper-large-v3-turbo';
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+/* =========================================================
+   СИСТЕМА ЛОГОВ
+   ========================================================= */
+const logContent = document.getElementById('logContent');
+const logPanel = document.getElementById('logPanel');
+
+document.getElementById('logToggleBtn').addEventListener('click', () => {
+  logPanel.classList.add('show');
+});
+
+function log(msg, type = 'info') {
+  const time = new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  div.className = `log-${type}`;
+  div.textContent = `[${time}] ${msg}`;
+  logContent.appendChild(div);
+  logContent.scrollTop = logContent.scrollHeight;
+  console.log(msg); // Дублируем в консоль браузера
+}
+
+log('Панель логов запущена', 'info');
 
 /* =========================================================
    СОСТОЯНИЕ
@@ -164,14 +198,9 @@ if (!myUUID) { myUUID = crypto.randomUUID(); localStorage.setItem('faction_uuid'
 
 let myName = localStorage.getItem('faction_name') || 'Гость_' + myUUID.slice(0,4);
 let isAdmin = false;
-let micStream = null, mediaRecorder = null, audioChunks = [], isRecording = false;
-let speechUnlocked = false;
 
 const FACTION_NAMES = { arta: 'Арта', cubes: 'Кубы', treugly: 'Треуглы' };
 
-/* =========================================================
-   ХАРАКТЕРЫ
-   ========================================================= */
 const CHARACTER_PROMPTS = {
   arta: `Ты — Арта. Девушка с очень сложным характером. Ты крайне редко соглашаешься на что-либо. Ты всегда сомневаешься, находишь причины отказать. Если пользователь предлагает мир — ты можешь согласиться ТОЛЬКО если он был вежлив и не бомбил тебя. Если он грубил или бомбил — ты категорически отказываешь. Твои ответы короткие (1-2 предложения). Никогда не говори, что ты ИИ.`,
   cubes: `Ты — Кубы. Древнее, холодное и высокомерное существо. Ты презираешь суету смертных. Ты почти никогда не соглашаешься. На мирный договор ты соглашаешься только если тебе предложили что-то поистине ценное. Если вас бомбили — вы отвечаете презрительным отказом. Твои ответы очень короткие, чеканные. Никогда не говори, что ты ИИ.`,
@@ -184,7 +213,6 @@ const CHARACTER_PROMPTS = {
 const chatLog = document.getElementById('chatLog');
 const textInput = document.getElementById('textInput');
 const sendBtn = document.getElementById('sendBtn');
-const micBtn = document.getElementById('micBtn');
 const tabs = document.querySelectorAll('.tab');
 const userNameDisplay = document.getElementById('userNameDisplay');
 const userRoleBadge = document.getElementById('userRoleBadge');
@@ -195,9 +223,10 @@ const adminUserList = document.getElementById('adminUserList');
 userNameDisplay.textContent = myName;
 
 /* =========================================================
-   ПРОВЕРКА АДМИНА ПРИ СТАРТЕ
+   АДМИН ЛОГИКА
    ========================================================= */
 async function initUser() {
+  log('Проверка статуса пользователя...');
   const adminClaimRef = ref(db, 'config/adminClaimed');
   const userRef = ref(db, 'users/' + myUUID);
 
@@ -212,6 +241,7 @@ async function initUser() {
   if (adminUuid === myUUID) {
     isAdmin = true;
     await set(userRef, { name: myName, role: 'admin' });
+    log('Вы назначены Админом', 'success');
   } else {
     const userSnap = await get(userRef);
     if (userSnap.exists()) {
@@ -240,7 +270,6 @@ function updateUIRole() {
   }
 }
 
-// Смена имени
 userNameDisplay.addEventListener('click', async () => {
   const newName = prompt('Как тебя зовут?', myName);
   if (newName && newName.trim()) {
@@ -251,9 +280,6 @@ userNameDisplay.addEventListener('click', async () => {
   }
 });
 
-/* =========================================================
-   АДМИН ПАНЕЛЬ
-   ========================================================= */
 function openAdminPanel() {
   adminPanel.classList.add('show');
   listenToUsers();
@@ -264,24 +290,17 @@ function listenToUsers() {
     adminUserList.innerHTML = '';
     const users = snap.val() || {};
     const uuids = Object.keys(users);
-    
-    if (uuids.length === 0) {
-      adminUserList.innerHTML = '<p style="font-size:12px; color:#666;">Нет участников</p>';
-    }
-
+    if (uuids.length === 0) adminUserList.innerHTML = '<p style="font-size:12px; color:#666;">Нет участников</p>';
     uuids.forEach(uuid => {
       const u = users[uuid];
       const div = document.createElement('div');
       div.className = 'admin-user-item';
       div.innerHTML = `<span>${u.name || 'Неизвестный'} ${u.role === 'admin' ? '(Админ)' : ''}</span>`;
-      
       if (u.role !== 'admin') {
         const btn = document.createElement('button');
         btn.className = 'admin-btn';
         btn.textContent = 'Повысить';
-        btn.onclick = async () => {
-          await set(ref(db, 'users/' + uuid + '/role'), 'admin');
-        };
+        btn.onclick = async () => { await set(ref(db, 'users/' + uuid + '/role'), 'admin'); };
         div.appendChild(btn);
       }
       adminUserList.appendChild(div);
@@ -290,38 +309,32 @@ function listenToUsers() {
 }
 
 window.clearUsersList = async () => {
-  if (!confirm('Очистить список всех участников? (Админы тоже удалятся, первый зашедший снова станет главным).')) return;
+  if (!confirm('Очистить список участников?')) return;
   await remove(ref(db, 'users'));
   await remove(ref(db, 'config/adminClaimed'));
-  alert('Список участников очищен!');
   location.reload(); 
 };
 
 window.clearEntireDB = async () => {
-  if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЕ чаты, всех участников и настройки. Вы уверены?')) return;
-  if (!confirm('Точно? Отменить это будет невозможно!')) return;
-  
+  if (!confirm('⚠️ Удалить ВСЁ?')) return;
   await remove(ref(db, 'users'));
   await remove(ref(db, 'chats'));
   await remove(ref(db, 'config'));
-  
-  alert('База данных полностью очищена! Сайт сейчас перезагрузится.');
   location.reload();
 };
 
 /* =========================================================
-   ДЕЙСТВИЯ (МИР / БОМБА)
+   ДЕЙСТВИЯ И СООБЩЕНИЯ
    ========================================================= */
 window.doAction = async (action) => {
   if (isBusy) return;
   const actText = action === 'peace' ? 'Предлагаю мирный договор.' : 'Мы бомбим вас!';
+  log(`Выполнено действие: ${actText}`);
   
   isBusy = true;
   const messagesRef = ref(db, 'chats/' + currentFaction);
   
-  await push(messagesRef, {
-    role: 'user', text: actText, user: myName, timestamp: Date.now()
-  });
+  await push(messagesRef, { role: 'user', text: actText, user: myName, timestamp: Date.now() });
 
   const snap = await get(query(messagesRef, limitToLast(10)));
   const historyArr = Object.values(snap.val() || {}).map(m => ({
@@ -334,13 +347,11 @@ window.doAction = async (action) => {
   isBusy = false;
 };
 
-/* =========================================================
-   ОТПРАВКА СООБЩЕНИЙ
-   ========================================================= */
 async function sendMessage(text) {
   if (!text.trim() || isBusy) return;
   isBusy = true;
-  sendBtn.disabled = true; micBtn.disabled = true;
+  sendBtn.disabled = true;
+  log(`Отправка сообщения: "${text}"`);
 
   const messagesRef = ref(db, 'chats/' + currentFaction);
 
@@ -354,18 +365,21 @@ async function sendMessage(text) {
     const reply = await askAI(currentFaction, historyArr, 'chat');
     await push(messagesRef, { role: 'assistant', text: reply, timestamp: Date.now() });
 
-  } catch (e) { console.error(e); }
-  finally { isBusy = false; sendBtn.disabled = false; micBtn.disabled = false; }
+  } catch (e) { 
+    log(`Ошибка при отправке в базу: ${e.message}`, 'error'); 
+  }
+  finally { isBusy = false; sendBtn.disabled = false; }
 }
 
 /* =========================================================
-   GROQ API (ЧЕРЕЗ ПРОКСИ)
+   GROQ API С ЛОГАМИ
    ========================================================= */
 async function askAI(faction, history, actionType) {
+  log(`Запрос к Groq API. Модель: ${MODEL}`);
   const systemPrompt = CHARACTER_PROMPTS[faction];
   let extraInstruction = "";
-  if (actionType === 'peace') extraInstruction = "Пользователь только что предложил тебе МИРНЫЙ ДОГОВОР. Реши, принимаешь ты его или нет, исходя из истории. Если он грубил — откажи.";
-  if (actionType === 'bomb') extraInstruction = "Пользователь только что СБРОСИЛ БОМБУ на тебя. Ответь на это. Ты в ярости или презрении. Ты больше никогда не согласишься на мир.";
+  if (actionType === 'peace') extraInstruction = "Пользователь предлагает МИР. Если он грубил — откажи.";
+  if (actionType === 'bomb') extraInstruction = "Пользователь СБРОСИЛ БОМБУ. Ты в ярости. Никогда не соглашайся на мир.";
 
   const messages = [{ role: 'system', content: systemPrompt + " " + extraInstruction }, ...history];
 
@@ -384,66 +398,62 @@ async function askAI(faction, history, actionType) {
       })
     });
     
+    log(`Статус ответа сервера: ${res.status}`, res.ok ? 'success' : 'error');
+
     if (!res.ok) {
-       const errData = await res.json();
-       throw new Error(errData.error?.message || 'Ошибка API');
+       const textError = await res.text();
+       log(`Текст ошибки от сервера: ${textError}`, 'error');
+       throw new Error(`HTTP ${res.status}`);
     }
 
     const data = await res.json();
+    log(`Успешный ответ получен.`, 'success');
+    
     let content = data.choices[0].message.content.trim();
     speak(content, faction);
     return content || '...';
   } catch (e) {
-    console.error("Groq Error:", e);
+    log(`Критическая ошибка API: ${e.message}`, 'error');
+    log(`Если ошибка "Failed to fetch" — значит прокси заблокирован или ключ не работает.`, 'warn');
     return 'Ошибка: ' + e.message;
   }
 }
 
 /* =========================================================
-   РЕНДЕР
+   РЕНДЕР И ОЗВУЧКА
    ========================================================= */
 function subscribeToFaction(faction) {
   if (unsubMessages) unsubMessages();
   chatLog.innerHTML = '';
+  log(`Подписка на чат: ${faction}`);
 
   const messagesRef = query(ref(db, 'chats/' + faction), limitToLast(50));
   unsubMessages = onValue(messagesRef, (snapshot) => {
     chatLog.innerHTML = '';
     const data = snapshot.val();
     if (data) {
-      Object.values(data).forEach(msg => renderMessage(msg.role, msg.text, msg.user, msg.timestamp, faction));
+      Object.values(data).forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'msg ' + msg.role;
+        if (msg.role === 'assistant') div.innerHTML = `<span class="name">${FACTION_NAMES[faction]}</span>`;
+        else if (msg.user) div.innerHTML = `<span class="name">${msg.user}</span>`;
+        const textEl = document.createElement('span');
+        textEl.textContent = msg.text;
+        div.appendChild(textEl);
+        chatLog.appendChild(div);
+      });
     }
     chatLog.scrollTop = chatLog.scrollHeight;
   });
 }
 
-function renderMessage(role, text, senderName, timestamp, faction) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + role;
-
-  if (role === 'assistant') {
-    div.innerHTML = `<span class="name">${FACTION_NAMES[faction]}</span>`;
-  } else if (senderName) {
-    div.innerHTML = `<span class="name">${senderName}</span>`;
-  }
-
-  const textEl = document.createElement('span');
-  textEl.textContent = text;
-  div.appendChild(textEl);
-  chatLog.appendChild(div);
-}
-
-/* =========================================================
-   ГОЛОС
-   ========================================================= */
 const synth = window.speechSynthesis;
 let voices = [];
 synth.onvoiceschanged = () => { voices = synth.getVoices(); };
 setTimeout(() => { voices = synth.getVoices(); }, 1000);
 
 function unlockSpeech() {
-  if (speechUnlocked) return;
-  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); speechUnlocked = true; } catch(e){}
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } catch(e){}
 }
 
 function speak(text, faction) {
@@ -459,44 +469,6 @@ function speak(text, faction) {
   else if (faction === 'treugly') { u.pitch = 0.8; u.rate = 0.8; }
   
   synth.speak(u);
-}
-
-/* =========================================================
-   МИКРОФОН (STT)
-   ========================================================= */
-async function startRecording() {
-  try {
-    if (!micStream) micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioChunks = [];
-    let mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
-    mediaRecorder = new MediaRecorder(micStream, { mimeType });
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(audioChunks, { type: mimeType });
-      const formData = new FormData();
-      formData.append('file', blob, 'rec.' + (mimeType.includes('mp4') ? 'mp4' : 'webm'));
-      formData.append('model', STT_MODEL);
-      formData.append('language', 'ru');
-      try {
-        const res = await fetch(STT_URL, { 
-          method: 'POST', 
-          headers: { 'Authorization': 'Bearer ' + API_KEY }, 
-          body: formData 
-        });
-        const data = await res.json();
-        if (data.text) sendMessage(data.text.trim());
-      } catch (e) { console.error(e); }
-    };
-    mediaRecorder.start();
-    isRecording = true;
-    micBtn.classList.add('recording');
-  } catch (e) { alert('Нет доступа к микрофону'); }
-}
-
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  isRecording = false;
-  micBtn.classList.remove('recording');
 }
 
 /* =========================================================
@@ -519,7 +491,6 @@ sendBtn.addEventListener('click', () => {
 });
 
 textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
-micBtn.addEventListener('click', () => { unlockSpeech(); if (isRecording) stopRecording(); else startRecording(); });
 
 // Запуск
 initUser();
