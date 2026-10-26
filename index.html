@@ -60,15 +60,20 @@
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
   /* Админ-панель */
-  #adminPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.95); z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+  #adminPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.98); z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
   #adminPanel.show { display: flex; }
   #adminPanel h2 { color: #ff3b30; margin-bottom: 15px; }
   .admin-user-item { display: flex; justify-content: space-between; align-items: center; background: #1e1e3a; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
   .admin-btn { background: #5a4a9a; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-  .reset-input { display: flex; gap: 8px; margin-top: 20px; }
-  .reset-input input { flex: 1; padding: 8px; border-radius: 6px; border: none; }
-  .reset-input button { background: #ff3b30; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-  .close-admin { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 8px; border-radius: 6px; margin-top: auto; cursor: pointer; }
+  
+  .danger-zone { margin-top: 25px; border: 1px solid #ff3b30; border-radius: 10px; padding: 15px; background: rgba(255, 59, 48, 0.1); }
+  .danger-zone h3 { color: #ff3b30; font-size: 14px; margin-bottom: 10px; }
+  .danger-btn { width: 100%; padding: 10px; margin-bottom: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; background: #ff3b30; transition: 0.2s; }
+  .danger-btn:hover { background: #d63029; }
+  .danger-btn.secondary { background: #3a3a6a; }
+  .danger-btn.secondary:hover { background: #2a2a5a; }
+
+  .close-admin { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 8px; border-radius: 6px; margin-top: 20px; cursor: pointer; width: 100%; }
 </style>
 </head>
 <body>
@@ -105,13 +110,15 @@
   <div id="adminPanel">
     <h2>⚙️ Админ-панель</h2>
     <p style="font-size:12px; color:#aaa; margin-bottom:15px;">Список участников:</p>
-    <div id="adminUserList"></div>
+    <div id="adminUserList" style="max-height: 200px; overflow-y: auto;"></div>
     
-    <div class="reset-input">
-      <input type="text" id="resetCode" placeholder="Секретный код">
-      <button onclick="resetFaction()">Сбросить</button>
+    <!-- Опасная зона -->
+    <div class="danger-zone">
+      <h3>⚠️ Опасная зона</h3>
+      <button class="danger-btn secondary" onclick="clearUsersList()">🗑️ Очистить только участников</button>
+      <button class="danger-btn" onclick="clearEntireDB()">💀 Полностью очистить базу</button>
+      <p style="font-size:10px; color:#aaa; margin-top:5px;">Полная очистка удалит все чаты, участников и настройки. После этого первый зашедший снова станет админом.</p>
     </div>
-    <p style="font-size:11px; color:#666; margin-top:5px;">Код: <b>12345</b> (сбросит текущую фракцию)</p>
     
     <button class="close-admin" onclick="document.getElementById('adminPanel').classList.remove('show')">Закрыть</button>
   </div>
@@ -188,7 +195,6 @@ async function initUser() {
   const adminClaimRef = ref(db, 'config/adminClaimed');
   const userRef = ref(db, 'users/' + myUUID);
 
-  // Пытаемся занять место первого админа (безопасно от гонок)
   await runTransaction(adminClaimRef, (currentData) => {
     if (currentData === null) return myUUID;
     return currentData;
@@ -251,11 +257,17 @@ function listenToUsers() {
   onValue(ref(db, 'users'), (snap) => {
     adminUserList.innerHTML = '';
     const users = snap.val() || {};
-    Object.keys(users).forEach(uuid => {
+    const uuids = Object.keys(users);
+    
+    if (uuids.length === 0) {
+      adminUserList.innerHTML = '<p style="font-size:12px; color:#666;">Нет участников</p>';
+    }
+
+    uuids.forEach(uuid => {
       const u = users[uuid];
       const div = document.createElement('div');
       div.className = 'admin-user-item';
-      div.innerHTML = `<span>${u.name} ${u.role === 'admin' ? '(Админ)' : ''}</span>`;
+      div.innerHTML = `<span>${u.name || 'Неизвестный'} ${u.role === 'admin' ? '(Админ)' : ''}</span>`;
       
       if (u.role !== 'admin') {
         const btn = document.createElement('button');
@@ -271,14 +283,26 @@ function listenToUsers() {
   });
 }
 
-window.resetFaction = async () => {
-  const code = document.getElementById('resetCode').value;
-  if (code !== '12345') { alert('Неверный код!'); return; }
-  if (!confirm('Точно сбросить историю этой фракции?')) return;
+// ОЧИСТКА ТОЛЬКО УЧАСТНИКОВ
+window.clearUsersList = async () => {
+  if (!confirm('Очистить список всех участников? (Админы тоже удалятся, первый зашедший снова станет главным).')) return;
+  await remove(ref(db, 'users'));
+  await remove(ref(db, 'config/adminClaimed')); // Сбрасываем первого админа
+  alert('Список участников очищен!');
+  location.reload(); // Перезагружаем, чтобы обновить статус
+};
+
+// ПОЛНАЯ ОЧИСТКА БАЗЫ
+window.clearEntireDB = async () => {
+  if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЕ чаты, всех участников и настройки. Вы уверены?')) return;
+  if (!confirm('Точно? Отменить это будет невозможно!')) return;
   
-  await remove(ref(db, 'chats/' + currentFaction));
-  alert('История фракции очищена!');
-  document.getElementById('resetCode').value = '';
+  await remove(ref(db, 'users'));
+  await remove(ref(db, 'chats'));
+  await remove(ref(db, 'config'));
+  
+  alert('База данных полностью очищена! Сайт сейчас перезагрузится.');
+  location.reload();
 };
 
 /* =========================================================
@@ -289,7 +313,6 @@ window.doAction = async (action) => {
   const actText = action === 'peace' ? 'Предлагаю мирный договор.' : 'Мы бомбим вас!';
   
   isBusy = true;
-  setStatus('...');
   
   const messagesRef = ref(db, 'chats/' + currentFaction);
   
@@ -315,7 +338,6 @@ window.doAction = async (action) => {
   });
   
   isBusy = false;
-  setStatus('');
 };
 
 /* =========================================================
@@ -429,7 +451,6 @@ function speak(text, faction) {
   let voice = voices.find(v => v.lang.includes('ru'));
   if (voice) u.voice = voice;
 
-  // Настройка голоса под каждую фракцию
   if (faction === 'cubes') { u.pitch = 0.5; u.rate = 0.9; }
   else if (faction === 'arta') { u.pitch = 1.2; u.rate = 1.0; }
   else if (faction === 'treugly') { u.pitch = 0.8; u.rate = 0.8; }
@@ -495,7 +516,7 @@ micBtn.addEventListener('click', () => { unlockSpeech(); if (isRecording) stopRe
 
 // Запуск
 initUser();
-subscribeToFaction('arta'); // Стартуем с Арты
+subscribeToFaction('arta');
 </script>
 </body>
 </html>
