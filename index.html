@@ -138,10 +138,13 @@ const firebaseConfig = {
   appId: "1:179467663659:web:be71167fd0ffd412416d6e"
 };
 
-const API_KEY = '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';
+// НОВЫЙ КЛЮЧ GROQ
+const API_KEY = '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'; 
+
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const STT_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
-const MODEL   = 'openai/gpt-oss-120b';
+
+const MODEL   = 'llama-3.1-8b-instant'; 
 const STT_MODEL = 'whisper-large-v3-turbo';
 
 const app = initializeApp(firebaseConfig);
@@ -283,16 +286,14 @@ function listenToUsers() {
   });
 }
 
-// ОЧИСТКА ТОЛЬКО УЧАСТНИКОВ
 window.clearUsersList = async () => {
   if (!confirm('Очистить список всех участников? (Админы тоже удалятся, первый зашедший снова станет главным).')) return;
   await remove(ref(db, 'users'));
-  await remove(ref(db, 'config/adminClaimed')); // Сбрасываем первого админа
+  await remove(ref(db, 'config/adminClaimed'));
   alert('Список участников очищен!');
-  location.reload(); // Перезагружаем, чтобы обновить статус
+  location.reload(); 
 };
 
-// ПОЛНАЯ ОЧИСТКА БАЗЫ
 window.clearEntireDB = async () => {
   if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЕ чаты, всех участников и настройки. Вы уверены?')) return;
   if (!confirm('Точно? Отменить это будет невозможно!')) return;
@@ -313,29 +314,19 @@ window.doAction = async (action) => {
   const actText = action === 'peace' ? 'Предлагаю мирный договор.' : 'Мы бомбим вас!';
   
   isBusy = true;
-  
   const messagesRef = ref(db, 'chats/' + currentFaction);
   
   await push(messagesRef, {
-    role: 'user',
-    text: actText,
-    user: myName,
-    timestamp: Date.now()
+    role: 'user', text: actText, user: myName, timestamp: Date.now()
   });
 
   const snap = await get(query(messagesRef, limitToLast(10)));
   const historyArr = Object.values(snap.val() || {}).map(m => ({
-    role: m.role === 'user' ? 'user' : 'assistant',
-    content: m.text
+    role: m.role === 'user' ? 'user' : 'assistant', content: m.text
   }));
 
   const reply = await askAI(currentFaction, historyArr, action);
-
-  await push(messagesRef, {
-    role: 'assistant',
-    text: reply,
-    timestamp: Date.now()
-  });
+  await push(messagesRef, { role: 'assistant', text: reply, timestamp: Date.now() });
   
   isBusy = false;
 };
@@ -352,11 +343,9 @@ async function sendMessage(text) {
 
   try {
     await push(messagesRef, { role: 'user', text: text, user: myName, timestamp: Date.now() });
-
     const snap = await get(query(messagesRef, limitToLast(10)));
     const historyArr = Object.values(snap.val() || {}).map(m => ({
-      role: m.role === 'user' ? 'user' : 'assistant',
-      content: m.text
+      role: m.role === 'user' ? 'user' : 'assistant', content: m.text
     }));
 
     const reply = await askAI(currentFaction, historyArr, 'chat');
@@ -371,28 +360,36 @@ async function sendMessage(text) {
    ========================================================= */
 async function askAI(faction, history, actionType) {
   const systemPrompt = CHARACTER_PROMPTS[faction];
-  
   let extraInstruction = "";
   if (actionType === 'peace') extraInstruction = "Пользователь только что предложил тебе МИРНЫЙ ДОГОВОР. Реши, принимаешь ты его или нет, исходя из истории. Если он грубил — откажи.";
   if (actionType === 'bomb') extraInstruction = "Пользователь только что СБРОСИЛ БОМБУ на тебя. Ответь на это. Ты в ярости или презрении. Ты больше никогда не согласишься на мир.";
 
-  const messages = [
-    { role: 'system', content: systemPrompt + " " + extraInstruction }, 
-    ...history
-  ];
+  const messages = [{ role: 'system', content: systemPrompt + " " + extraInstruction }, ...history];
 
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, messages: messages, temperature: 0.9, max_tokens: 150, reasoning_effort: 'low' })
+      body: JSON.stringify({ 
+        model: MODEL, 
+        messages: messages, 
+        temperature: 0.8, 
+        max_tokens: 150 
+      })
     });
+    
+    if (!res.ok) {
+       const errData = await res.json();
+       throw new Error(errData.error?.message || 'Ошибка API');
+    }
+
     const data = await res.json();
     let content = data.choices[0].message.content.trim();
     speak(content, faction);
     return content || '...';
   } catch (e) {
-    return 'Связь прервалась.';
+    console.error("Groq Error:", e);
+    return 'Ошибка: ' + e.message;
   }
 }
 
