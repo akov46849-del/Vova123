@@ -1,500 +1,163 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Фракции: Арта, Кубы, Треуглы</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Голосование | Евровидение Roblox 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: radial-gradient(circle at 50% 0%, #1a1a2e, #0f0f17);
-    color: #e0e0e0; min-height: 100vh;
-    display: flex; justify-content: center; align-items: center; padding: 10px;
-  }
-  .app {
-    width: 100%; max-width: 550px; height: 95vh; max-height: 900px;
-    background: #16213e; border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    display: flex; flex-direction: column; overflow: hidden;
-    border: 1px solid #2a2a4a; position: relative;
-  }
-  header {
-    background: linear-gradient(135deg, #1e1e3a, #2a2a5a);
-    padding: 12px 16px; border-bottom: 1px solid #3a3a6a;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  header h1 { font-size: 16px; color: #c9b8ff; letter-spacing: 1px; }
-  .user-info { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-  .role-badge { padding: 2px 8px; border-radius: 10px; font-weight: bold; }
-  .role-badge.admin { background: #ff3b30; color: white; }
-  .role-badge.user { background: #3a3a6a; color: #aaa; }
-  .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; }
-  
-  .tabs { display: flex; gap: 4px; padding: 10px 12px; background: #12122a; border-bottom: 1px solid #2a2a4a; }
-  .tab {
-    flex: 1; padding: 8px 4px; border: none; border-radius: 8px;
-    background: transparent; color: #6a6a8a; font-weight: 600; font-size: 13px; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .tab.active { background: linear-gradient(135deg, #5a4a9a, #7a5aff); color: #fff; box-shadow: 0 4px 14px rgba(122,90,255,0.3); }
-  
-  #chatLog { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #0f0f1f; scroll-behavior: smooth; }
-  .msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; animation: fadeIn 0.2s ease; word-wrap: break-word; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-  .msg.user { align-self: flex-end; background: linear-gradient(135deg, #3a5a9a, #5a8aff); color: #fff; border-bottom-right-radius: 4px; }
-  .msg.assistant { align-self: flex-start; background: #1e1e3a; color: #d0d0f0; border: 1px solid #2a2a4a; border-bottom-left-radius: 4px; }
-  .msg.assistant .name { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; opacity: 0.7; text-transform: uppercase; }
-  .msg.system { align-self: center; background: transparent; color: #ff9f0a; font-size: 12px; font-style: italic; padding: 4px; }
-  
-  .actions-bar { display: flex; gap: 8px; padding: 8px 12px; background: #12122a; }
-  .action-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; }
-  .action-btn.peace { background: #34c759; color: #fff; }
-  .action-btn.bomb { background: #ff3b30; color: #fff; }
-  .action-btn:hover { opacity: 0.8; }
-  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .input-area { padding: 10px 12px 14px; background: #12122a; border-top: 1px solid #2a2a4a; display: flex; gap: 8px; align-items: center; }
-  #textInput { flex: 1; padding: 12px; border-radius: 20px; border: 2px solid #2a2a4a; background: #0f0f1f; color: #e0e0e0; font-size: 14px; outline: none; }
-  #micBtn, #sendBtn { width: 42px; height: 42px; border-radius: 50%; border: none; background: linear-gradient(135deg, #5a4a9a, #7a5aff); color: #fff; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
-  #micBtn.recording { background: #ff3b30; animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-
-  /* Админ-панель и Логи */
-  .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 20, 0.98); z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
-  .modal.show { display: flex; }
-  .modal h2 { color: #ff3b30; margin-bottom: 15px; }
-  
-  .admin-user-item { display: flex; justify-content: space-between; align-items: center; background: #1e1e3a; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
-  .admin-btn { background: #5a4a9a; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
-  
-  .danger-zone { margin-top: 25px; border: 1px solid #ff3b30; border-radius: 10px; padding: 15px; background: rgba(255, 59, 48, 0.1); }
-  .danger-zone h3 { color: #ff3b30; font-size: 14px; margin-bottom: 10px; }
-  .danger-btn { width: 100%; padding: 10px; margin-bottom: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; background: #ff3b30; transition: 0.2s; }
-  .danger-btn:hover { background: #d63029; }
-  .danger-btn.secondary { background: #3a3a6a; }
-  .danger-btn.secondary:hover { background: #2a2a5a; }
-
-  .close-modal { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 8px; border-radius: 6px; margin-top: 20px; cursor: pointer; width: 100%; }
-
-  /* Стили для логов */
-  #logPanel { background: #0a0a0f; color: #00ff00; font-family: monospace; font-size: 12px; }
-  #logContent { flex: 1; overflow-y: auto; white-space: pre-wrap; line-height: 1.5; padding-bottom: 20px; }
-  .log-info { color: #89b4fa; }
-  .log-error { color: #f38ba8; }
-  .log-success { color: #a6e3a1; }
-  .log-warn { color: #f9e2af; }
+  :root{--pink:#ff2e88;--purple:#8a2be2;--blue:#00d4ff;--gold:#ffd166;--muted:#a0a0c0}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Montserrat',sans-serif;background:#0a0a14;color:#fff;min-height:100vh;
+    background-image:radial-gradient(circle at 20% 10%,rgba(138,43,226,.35),transparent 45%),
+    radial-gradient(circle at 80% 20%,rgba(255,46,136,.30),transparent 45%),
+    radial-gradient(circle at 50% 90%,rgba(0,212,255,.20),transparent 50%)}
+  .container{max-width:1100px;margin:0 auto;padding:40px 20px}
+  h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;text-align:center;margin-bottom:8px}
+  h1 .grad{background:linear-gradient(90deg,var(--pink),var(--purple),var(--blue));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{text-align:center;color:var(--muted);margin-bottom:30px}
+  .status-banner{text-align:center;padding:16px;border-radius:14px;font-weight:800;
+    margin-bottom:30px;letter-spacing:1px;text-transform:uppercase;font-size:.85rem}
+  .open{background:rgba(0,212,255,.15);color:var(--blue);border:1px solid rgba(0,212,255,.4)}
+  .closed{background:rgba(255,46,136,.15);color:var(--pink);border:1px solid rgba(255,46,136,.4)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+  .card{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;padding:22px 18px;text-align:center;cursor:pointer;
+    transition:transform .2s,border-color .2s,box-shadow .2s,background .2s}
+  .card:hover:not(.disabled){transform:translateY(-4px);border-color:var(--pink);
+    box-shadow:0 15px 40px rgba(255,46,136,.25)}
+  .card.voted{border-color:var(--gold);background:rgba(255,209,102,.1);
+    box-shadow:0 0 30px rgba(255,209,102,.35)}
+  .card.disabled{opacity:.55;cursor:not-allowed}
+  .flag{font-size:2.2rem;display:block;margin-bottom:10px}
+  .country{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .artist{font-size:1.15rem;font-weight:800}
+  .votes{margin-top:12px;font-size:.75rem;color:var(--muted);letter-spacing:1px}
+  .votes b{color:var(--gold);font-size:1rem}
+  .leader{position:absolute;top:10px;right:10px;font-size:1.1rem}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);
+    background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;padding:14px 26px;
+    border-radius:999px;font-weight:700;box-shadow:0 10px 40px rgba(255,46,136,.5);
+    transition:transform .35s ease;z-index:100}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.error{background:#ff2e88}
+  .footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:40px;letter-spacing:2px}
+  .footer b{background:linear-gradient(90deg,var(--pink),var(--blue));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1>⚔️ Фракции</h1>
-    <div class="user-info">
-      <span id="userNameDisplay">Гость</span>
-      <span id="userRoleBadge" class="role-badge user">Гость</span>
-      <button id="logToggleBtn" class="icon-btn" title="Логи">🐞</button>
-      <button id="adminToggleBtn" class="icon-btn" style="display:none; color:#ff3b30;" title="Админка">⚙️</button>
-    </div>
-  </header>
-
-  <div class="tabs">
-    <button class="tab active" data-faction="arta">Арта</button>
-    <button class="tab" data-faction="cubes">Кубы</button>
-    <button class="tab" data-faction="treugly">Треуглы</button>
-  </div>
-
-  <div id="chatLog"></div>
-
-  <div class="actions-bar">
-    <button class="action-btn peace" onclick="doAction('peace')">🕊️ Предложить мир</button>
-    <button class="action-btn bomb" onclick="doAction('bomb')">💣 Бомбить</button>
-  </div>
-
-  <div class="input-area">
-    <button id="micBtn">🎤</button>
-    <input type="text" id="textInput" placeholder="Написать..." autocomplete="off">
-    <button id="sendBtn">➤</button>
-  </div>
-
-  <!-- Модальное окно логов -->
-  <div id="logPanel" class="modal">
-    <h2 style="color: #89b4fa; font-family: monospace;">🐞 Панель логов</h2>
-    <div id="logContent"></div>
-    <button class="close-modal" onclick="document.getElementById('logPanel').classList.remove('show')">Закрыть</button>
-  </div>
-
-  <!-- Админ панель -->
-  <div id="adminPanel" class="modal">
-    <h2>⚙️ Админ-панель</h2>
-    <p style="font-size:12px; color:#aaa; margin-bottom:15px;">Список участников:</p>
-    <div id="adminUserList" style="max-height: 200px; overflow-y: auto;"></div>
-    
-    <div class="danger-zone">
-      <h3>⚠️ Опасная зона</h3>
-      <button class="danger-btn secondary" onclick="clearUsersList()">🗑️ Очистить только участников</button>
-      <button class="danger-btn" onclick="clearEntireDB()">💀 Полностью очистить базу</button>
-    </div>
-    
-    <button class="close-modal" onclick="document.getElementById('adminPanel').classList.remove('show')">Закрыть</button>
-  </div>
+<div class="container">
+  <h1>ГОЛОСУЙ ЗА <span class="grad">ЛУЧШЕГО</span></h1>
+  <p class="sub">Первое Евровидение в Roblox 2026 • TANOS STUDIO</p>
+  <div id="status" class="status-banner closed">Загрузка...</div>
+  <div class="grid" id="grid"></div>
+  <p class="footer">Организатор — <b>TANOS STUDIO</b></p>
 </div>
+<div id="toast" class="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, query, limitToLast, set, get, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+<script>
+  const API = 'https://evrovision.akov46849.workers.dev';
+  const votedKey = 'ev_voted_artist';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBSb532Ppi7xXdfHcuDfXTp6U_ut_0saio",
-  authDomain: "zing-30a21.firebaseapp.com",
-  databaseURL: "https://zing-30a21-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "zing-30a21",
-  storageBucket: "zing-30a21.firebasestorage.app",
-  messagingSenderId: "179467663659",
-  appId: "1:179467663659:web:be71167fd0ffd412416d6e"
-};
+  const ARTISTS = [
+    {id:'basta', flag:'🇷🇺', country:'Россия', artist:'Баста'},
+    {id:'dara', flag:'🇧🇬', country:'Болгария', artist:'DARA'},
+    {id:'lady_gaga', flag:'🇺🇸', country:'США', artist:'Lady Gaga'},
+    {id:'ed_sheeran', flag:'🇬🇧', country:'Великобритания', artist:'Ed Sheeran'},
+    {id:'the_weeknd', flag:'🇨🇦', country:'Канада', artist:'The Weeknd'},
+    {id:'indila', flag:'🇫🇷', country:'Франция', artist:'Indila'},
+    {id:'rammstein', flag:'🇩🇪', country:'Германия', artist:'Rammstein'},
+    {id:'rosalia', flag:'🇪🇸', country:'Испания', artist:'Rosalía'},
+    {id:'eros', flag:'🇮🇹', country:'Италия', artist:'Eros Ramazzotti'},
+    {id:'zara', flag:'🇸🇪', country:'Швеция', artist:'Zara Larsson'},
+    {id:'alan_walker', flag:'🇳🇴', country:'Норвегия', artist:'Alan Walker'},
+    {id:'garrix', flag:'🇳🇱', country:'Нидерланды', artist:'Martin Garrix'},
+    {id:'sia', flag:'🇦🇺', country:'Австралия', artist:'Sia'},
+    {id:'bts', flag:'🇰🇷', country:'Южная Корея', artist:'BTS'},
+    {id:'shakira', flag:'🇨🇴', country:'Колумбия', artist:'Shakira'},
+    {id:'rema', flag:'🇳🇬', country:'Нигерия', artist:'Rema'},
+    {id:'bad_bunny', flag:'🇵🇷', country:'Пуэрто-Рико', artist:'Bad Bunny'}
+  ];
 
-const API_KEY = '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'; 
+  let isOpen = false;
+  let results = {};
+  let votedId = localStorage.getItem(votedKey);
 
-// Прокси для обхода CORS
-const PROXY = 'https://api.allorigins.win/raw?url=';
-const GROQ_URL = encodeURIComponent('https://api.groq.com/openai/v1/chat/completions');
-const API_URL = PROXY + GROQ_URL;
+  const grid = document.getElementById('grid');
+  const statusEl = document.getElementById('status');
+  const toastEl = document.getElementById('toast');
 
-const MODEL   = 'openai/gpt-oss-120b'; 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-/* =========================================================
-   СИСТЕМА ЛОГОВ
-   ========================================================= */
-const logContent = document.getElementById('logContent');
-const logPanel = document.getElementById('logPanel');
-
-document.getElementById('logToggleBtn').addEventListener('click', () => {
-  logPanel.classList.add('show');
-});
-
-function log(msg, type = 'info') {
-  const time = new Date().toLocaleTimeString();
-  const div = document.createElement('div');
-  div.className = `log-${type}`;
-  div.textContent = `[${time}] ${msg}`;
-  logContent.appendChild(div);
-  logContent.scrollTop = logContent.scrollHeight;
-  console.log(msg); // Дублируем в консоль браузера
-}
-
-log('Панель логов запущена', 'info');
-
-/* =========================================================
-   СОСТОЯНИЕ
-   ========================================================= */
-let currentFaction = 'arta';
-let unsubMessages = null;
-let isBusy = false;
-let myUUID = localStorage.getItem('faction_uuid');
-if (!myUUID) { myUUID = crypto.randomUUID(); localStorage.setItem('faction_uuid', myUUID); }
-
-let myName = localStorage.getItem('faction_name') || 'Гость_' + myUUID.slice(0,4);
-let isAdmin = false;
-
-const FACTION_NAMES = { arta: 'Арта', cubes: 'Кубы', treugly: 'Треуглы' };
-
-const CHARACTER_PROMPTS = {
-  arta: `Ты — Арта. Девушка с очень сложным характером. Ты крайне редко соглашаешься на что-либо. Ты всегда сомневаешься, находишь причины отказать. Если пользователь предлагает мир — ты можешь согласиться ТОЛЬКО если он был вежлив и не бомбил тебя. Если он грубил или бомбил — ты категорически отказываешь. Твои ответы короткие (1-2 предложения). Никогда не говори, что ты ИИ.`,
-  cubes: `Ты — Кубы. Древнее, холодное и высокомерное существо. Ты презираешь суету смертных. Ты почти никогда не соглашаешься. На мирный договор ты соглашаешься только если тебе предложили что-то поистине ценное. Если вас бомбили — вы отвечаете презрительным отказом. Твои ответы очень короткие, чеканные. Никогда не говори, что ты ИИ.`,
-  treugly: `Ты — Треуглы. Ты загадочное существо, говоришь туманно, намёками. Ты никогда не даёшь прямого ответа. На мир ты можешь согласиться, только если предложишь разгадку или загадку. Если тебя бомбили — ты уходишь в тень и не отвечаешь прямо. Твои ответы короткие (1-2 предложения). Никогда не говори, что ты ИИ.`
-};
-
-/* =========================================================
-   DOM
-   ========================================================= */
-const chatLog = document.getElementById('chatLog');
-const textInput = document.getElementById('textInput');
-const sendBtn = document.getElementById('sendBtn');
-const tabs = document.querySelectorAll('.tab');
-const userNameDisplay = document.getElementById('userNameDisplay');
-const userRoleBadge = document.getElementById('userRoleBadge');
-const adminToggleBtn = document.getElementById('adminToggleBtn');
-const adminPanel = document.getElementById('adminPanel');
-const adminUserList = document.getElementById('adminUserList');
-
-userNameDisplay.textContent = myName;
-
-/* =========================================================
-   АДМИН ЛОГИКА
-   ========================================================= */
-async function initUser() {
-  log('Проверка статуса пользователя...');
-  const adminClaimRef = ref(db, 'config/adminClaimed');
-  const userRef = ref(db, 'users/' + myUUID);
-
-  await runTransaction(adminClaimRef, (currentData) => {
-    if (currentData === null) return myUUID;
-    return currentData;
-  });
-
-  const snap = await get(adminClaimRef);
-  const adminUuid = snap.val();
-
-  if (adminUuid === myUUID) {
-    isAdmin = true;
-    await set(userRef, { name: myName, role: 'admin' });
-    log('Вы назначены Админом', 'success');
-  } else {
-    const userSnap = await get(userRef);
-    if (userSnap.exists()) {
-      isAdmin = userSnap.val().role === 'admin';
-    } else {
-      await set(userRef, { name: myName, role: 'user' });
-    }
+  function showToast(msg, isError = false) {
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => (toastEl.className = 'toast'), 2500);
   }
 
-  updateUIRole();
-
-  if (isAdmin) {
-    adminToggleBtn.style.display = 'block';
-    adminToggleBtn.onclick = () => { openAdminPanel(); };
-    listenToUsers();
-  }
-}
-
-function updateUIRole() {
-  if (isAdmin) {
-    userRoleBadge.textContent = 'АДМИН';
-    userRoleBadge.className = 'role-badge admin';
-  } else {
-    userRoleBadge.textContent = 'УЧАСТНИК';
-    userRoleBadge.className = 'role-badge user';
-  }
-}
-
-userNameDisplay.addEventListener('click', async () => {
-  const newName = prompt('Как тебя зовут?', myName);
-  if (newName && newName.trim()) {
-    myName = newName.trim();
-    localStorage.setItem('faction_name', myName);
-    userNameDisplay.textContent = myName;
-    await set(ref(db, 'users/' + myUUID + '/name'), myName);
-  }
-});
-
-function openAdminPanel() {
-  adminPanel.classList.add('show');
-  listenToUsers();
-}
-
-function listenToUsers() {
-  onValue(ref(db, 'users'), (snap) => {
-    adminUserList.innerHTML = '';
-    const users = snap.val() || {};
-    const uuids = Object.keys(users);
-    if (uuids.length === 0) adminUserList.innerHTML = '<p style="font-size:12px; color:#666;">Нет участников</p>';
-    uuids.forEach(uuid => {
-      const u = users[uuid];
-      const div = document.createElement('div');
-      div.className = 'admin-user-item';
-      div.innerHTML = `<span>${u.name || 'Неизвестный'} ${u.role === 'admin' ? '(Админ)' : ''}</span>`;
-      if (u.role !== 'admin') {
-        const btn = document.createElement('button');
-        btn.className = 'admin-btn';
-        btn.textContent = 'Повысить';
-        btn.onclick = async () => { await set(ref(db, 'users/' + uuid + '/role'), 'admin'); };
-        div.appendChild(btn);
-      }
-      adminUserList.appendChild(div);
+  function render() {
+    const maxVotes = Math.max(0, ...Object.values(results));
+    grid.innerHTML = '';
+    ARTISTS.forEach((a) => {
+      const v = results[a.id] || 0;
+      const isLeader = v > 0 && v === maxVotes;
+      const card = document.createElement('div');
+      card.className = 'card';
+      if (!isOpen) card.classList.add('disabled');
+      if (votedId === a.id) card.classList.add('voted');
+      card.innerHTML = `
+        ${isLeader ? '<span class="leader">👑</span>' : ''}
+        <span class="flag">${a.flag}</span>
+        <div class="country">${a.country}</div>
+        <div class="artist">${a.artist}</div>
+        <div class="votes"><b>${v}</b> голосов</div>
+      `;
+      card.onclick = () => vote(a.id);
+      grid.appendChild(card);
     });
-  });
-}
-
-window.clearUsersList = async () => {
-  if (!confirm('Очистить список участников?')) return;
-  await remove(ref(db, 'users'));
-  await remove(ref(db, 'config/adminClaimed'));
-  location.reload(); 
-};
-
-window.clearEntireDB = async () => {
-  if (!confirm('⚠️ Удалить ВСЁ?')) return;
-  await remove(ref(db, 'users'));
-  await remove(ref(db, 'chats'));
-  await remove(ref(db, 'config'));
-  location.reload();
-};
-
-/* =========================================================
-   ДЕЙСТВИЯ И СООБЩЕНИЯ
-   ========================================================= */
-window.doAction = async (action) => {
-  if (isBusy) return;
-  const actText = action === 'peace' ? 'Предлагаю мирный договор.' : 'Мы бомбим вас!';
-  log(`Выполнено действие: ${actText}`);
-  
-  isBusy = true;
-  const messagesRef = ref(db, 'chats/' + currentFaction);
-  
-  await push(messagesRef, { role: 'user', text: actText, user: myName, timestamp: Date.now() });
-
-  const snap = await get(query(messagesRef, limitToLast(10)));
-  const historyArr = Object.values(snap.val() || {}).map(m => ({
-    role: m.role === 'user' ? 'user' : 'assistant', content: m.text
-  }));
-
-  const reply = await askAI(currentFaction, historyArr, action);
-  await push(messagesRef, { role: 'assistant', text: reply, timestamp: Date.now() });
-  
-  isBusy = false;
-};
-
-async function sendMessage(text) {
-  if (!text.trim() || isBusy) return;
-  isBusy = true;
-  sendBtn.disabled = true;
-  log(`Отправка сообщения: "${text}"`);
-
-  const messagesRef = ref(db, 'chats/' + currentFaction);
-
-  try {
-    await push(messagesRef, { role: 'user', text: text, user: myName, timestamp: Date.now() });
-    const snap = await get(query(messagesRef, limitToLast(10)));
-    const historyArr = Object.values(snap.val() || {}).map(m => ({
-      role: m.role === 'user' ? 'user' : 'assistant', content: m.text
-    }));
-
-    const reply = await askAI(currentFaction, historyArr, 'chat');
-    await push(messagesRef, { role: 'assistant', text: reply, timestamp: Date.now() });
-
-  } catch (e) { 
-    log(`Ошибка при отправке в базу: ${e.message}`, 'error'); 
   }
-  finally { isBusy = false; sendBtn.disabled = false; }
-}
 
-/* =========================================================
-   GROQ API С ЛОГАМИ
-   ========================================================= */
-async function askAI(faction, history, actionType) {
-  log(`Запрос к Groq API. Модель: ${MODEL}`);
-  const systemPrompt = CHARACTER_PROMPTS[faction];
-  let extraInstruction = "";
-  if (actionType === 'peace') extraInstruction = "Пользователь предлагает МИР. Если он грубил — откажи.";
-  if (actionType === 'bomb') extraInstruction = "Пользователь СБРОСИЛ БОМБУ. Ты в ярости. Никогда не соглашайся на мир.";
-
-  const messages = [{ role: 'system', content: systemPrompt + " " + extraInstruction }, ...history];
-
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 
-        'Authorization': 'Bearer ' + API_KEY, 
-        'Content-Type': 'application/json' 
-      },
-      body: JSON.stringify({ 
-        model: MODEL, 
-        messages: messages, 
-        temperature: 0.8, 
-        max_tokens: 150 
-      })
-    });
-    
-    log(`Статус ответа сервера: ${res.status}`, res.ok ? 'success' : 'error');
-
-    if (!res.ok) {
-       const textError = await res.text();
-       log(`Текст ошибки от сервера: ${textError}`, 'error');
-       throw new Error(`HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    log(`Успешный ответ получен.`, 'success');
-    
-    let content = data.choices[0].message.content.trim();
-    speak(content, faction);
-    return content || '...';
-  } catch (e) {
-    log(`Критическая ошибка API: ${e.message}`, 'error');
-    log(`Если ошибка "Failed to fetch" — значит прокси заблокирован или ключ не работает.`, 'warn');
-    return 'Ошибка: ' + e.message;
-  }
-}
-
-/* =========================================================
-   РЕНДЕР И ОЗВУЧКА
-   ========================================================= */
-function subscribeToFaction(faction) {
-  if (unsubMessages) unsubMessages();
-  chatLog.innerHTML = '';
-  log(`Подписка на чат: ${faction}`);
-
-  const messagesRef = query(ref(db, 'chats/' + faction), limitToLast(50));
-  unsubMessages = onValue(messagesRef, (snapshot) => {
-    chatLog.innerHTML = '';
-    const data = snapshot.val();
-    if (data) {
-      Object.values(data).forEach(msg => {
-        const div = document.createElement('div');
-        div.className = 'msg ' + msg.role;
-        if (msg.role === 'assistant') div.innerHTML = `<span class="name">${FACTION_NAMES[faction]}</span>`;
-        else if (msg.user) div.innerHTML = `<span class="name">${msg.user}</span>`;
-        const textEl = document.createElement('span');
-        textEl.textContent = msg.text;
-        div.appendChild(textEl);
-        chatLog.appendChild(div);
+  async function vote(artistId) {
+    if (!isOpen) return showToast('Голосование закрыто', true);
+    if (votedId) return showToast('Ты уже проголосовал!', true);
+    try {
+      const r = await fetch(API + '/vote', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({artistId})
       });
+      const d = await r.json();
+      if (!r.ok) return showToast(d.error || 'Ошибка', true);
+      votedId = artistId;
+      localStorage.setItem(votedKey, artistId);
+      results[artistId] = d.newVotes;
+      showToast('Голос принят! ✅');
+      render();
+    } catch (e) {
+      showToast('Сеть недоступна', true);
     }
-    chatLog.scrollTop = chatLog.scrollHeight;
-  });
-}
+  }
 
-const synth = window.speechSynthesis;
-let voices = [];
-synth.onvoiceschanged = () => { voices = synth.getVoices(); };
-setTimeout(() => { voices = synth.getVoices(); }, 1000);
+  async function refresh() {
+    try {
+      const [sR, rR] = await Promise.all([
+        fetch(API + '/status'),
+        fetch(API + '/results'),
+      ]);
+      const s = await sR.json();
+      const r = await rR.json();
+      isOpen = s.isOpen;
+      results = r.results || {};
+      statusEl.textContent = isOpen ? '🟢 Голосование открыто' : '🔴 Голосование закрыто';
+      statusEl.className = 'status-banner ' + (isOpen ? 'open' : 'closed');
+      render();
+    } catch (e) {
+      statusEl.textContent = 'Нет связи с сервером';
+    }
+  }
 
-function unlockSpeech() {
-  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } catch(e){}
-}
-
-function speak(text, faction) {
-  if (!text) return;
-  try { synth.cancel(); } catch(e) {}
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'ru-RU';
-  let voice = voices.find(v => v.lang.includes('ru'));
-  if (voice) u.voice = voice;
-
-  if (faction === 'cubes') { u.pitch = 0.5; u.rate = 0.9; }
-  else if (faction === 'arta') { u.pitch = 1.2; u.rate = 1.0; }
-  else if (faction === 'treugly') { u.pitch = 0.8; u.rate = 0.8; }
-  
-  synth.speak(u);
-}
-
-/* =========================================================
-   СОБЫТИЯ
-   ========================================================= */
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    if (isBusy) return;
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    currentFaction = tab.dataset.faction;
-    subscribeToFaction(currentFaction);
-  });
-});
-
-sendBtn.addEventListener('click', () => {
-  unlockSpeech();
-  const text = textInput.value.trim();
-  if (text) { textInput.value = ''; sendMessage(text); }
-});
-
-textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
-
-// Запуск
-initUser();
-subscribeToFaction('arta');
+  refresh();
+  setInterval(refresh, 4000);
 </script>
 </body>
 </html>
