@@ -3,161 +3,201 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Голосование | Евровидение Roblox 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+<title>Админ | TANOS STUDIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{--pink:#ff2e88;--purple:#8a2be2;--blue:#00d4ff;--gold:#ffd166;--muted:#a0a0c0}
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Montserrat',sans-serif;background:#0a0a14;color:#fff;min-height:100vh;
-    background-image:radial-gradient(circle at 20% 10%,rgba(138,43,226,.35),transparent 45%),
-    radial-gradient(circle at 80% 20%,rgba(255,46,136,.30),transparent 45%),
-    radial-gradient(circle at 50% 90%,rgba(0,212,255,.20),transparent 50%)}
-  .container{max-width:1100px;margin:0 auto;padding:40px 20px}
-  h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;text-align:center;margin-bottom:8px}
-  h1 .grad{background:linear-gradient(90deg,var(--pink),var(--purple),var(--blue));
-    -webkit-background-clip:text;background-clip:text;color:transparent}
-  .sub{text-align:center;color:var(--muted);margin-bottom:30px}
-  .status-banner{text-align:center;padding:16px;border-radius:14px;font-weight:800;
-    margin-bottom:30px;letter-spacing:1px;text-transform:uppercase;font-size:.85rem}
-  .open{background:rgba(0,212,255,.15);color:var(--blue);border:1px solid rgba(0,212,255,.4)}
-  .closed{background:rgba(255,46,136,.15);color:var(--pink);border:1px solid rgba(255,46,136,.4)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
-  .card{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-    border-radius:18px;padding:22px 18px;text-align:center;cursor:pointer;
-    transition:transform .2s,border-color .2s,box-shadow .2s,background .2s}
-  .card:hover:not(.disabled){transform:translateY(-4px);border-color:var(--pink);
-    box-shadow:0 15px 40px rgba(255,46,136,.25)}
-  .card.voted{border-color:var(--gold);background:rgba(255,209,102,.1);
-    box-shadow:0 0 30px rgba(255,209,102,.35)}
-  .card.disabled{opacity:.55;cursor:not-allowed}
-  .flag{font-size:2.2rem;display:block;margin-bottom:10px}
-  .country{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-  .artist{font-size:1.15rem;font-weight:800}
-  .votes{margin-top:12px;font-size:.75rem;color:var(--muted);letter-spacing:1px}
-  .votes b{color:var(--gold);font-size:1rem}
-  .leader{position:absolute;top:10px;right:10px;font-size:1.1rem}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);
-    background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;padding:14px 26px;
-    border-radius:999px;font-weight:700;box-shadow:0 10px 40px rgba(255,46,136,.5);
-    transition:transform .35s ease;z-index:100}
-  .toast.show{transform:translateX(-50%) translateY(0)}
-  .toast.error{background:#ff2e88}
-  .footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:40px;letter-spacing:2px}
-  .footer b{background:linear-gradient(90deg,var(--pink),var(--blue));
-    -webkit-background-clip:text;background-clip:text;color:transparent}
+  body{font-family:'Montserrat',sans-serif;background:#0a0a14;color:#fff;padding:20px;min-height:100vh}
+  .container{max-width:800px;margin:0 auto;background:#12122a;padding:30px;border-radius:20px;border:1px solid #ff2e88}
+  :root{--pink:#ff2e88;--purple:#8a2be2;--blue:#00d4ff;--gold:#ffd166;--muted:#a0a0c0}
+  h1{color:var(--pink);text-align:center;margin-bottom:20px;font-weight:900}
+  h2{font-weight:800;margin-bottom:16px}
+  h3{margin:20px 0 10px;color:var(--muted);font-size:.85rem;letter-spacing:2px;text-transform:uppercase}
+  .status{text-align:center;padding:14px;margin:20px 0;border-radius:12px;font-weight:800;letter-spacing:1px}
+  .status.open{background:var(--blue);color:#000}
+  .status.closed{background:#333;color:var(--muted)}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #2a2a3a}
+  .name{font-weight:700;font-size:1rem}
+  .controls{display:flex;align-items:center;gap:8px}
+  .controls button{background:var(--pink);color:#fff;border:none;width:40px;height:40px;border-radius:10px;
+    cursor:pointer;font-weight:900;font-size:1.1rem;transition:opacity .2s}
+  .controls button.minus{background:var(--purple)}
+  .controls button:hover{opacity:.8}
+  .count{font-size:1.3rem;font-weight:900;color:var(--gold);min-width:50px;text-align:center}
+  input{width:100%;padding:14px;border-radius:12px;border:1px solid #2a2a3a;background:#0a0a14;
+    color:#fff;margin-bottom:12px;font-family:inherit;font-size:1rem}
+  .btn{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;border:none;padding:16px;
+    border-radius:12px;font-weight:800;cursor:pointer;width:100%;font-size:1rem;letter-spacing:1px}
+  .btn:hover{opacity:.9}
+  .btn-ghost{background:#2a2a3a;width:auto;padding:10px 20px;font-size:.85rem}
+  .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
+  .error{color:var(--pink);margin-top:10px;text-align:center}
+  #admin{display:none}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
+  .top .email{font-size:.8rem;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>ГОЛОСУЙ ЗА <span class="grad">ЛУЧШЕГО</span></h1>
-  <p class="sub">Первое Евровидение в Roblox 2026 • TANOS STUDIO</p>
-  <div id="status" class="status-banner closed">Загрузка...</div>
-  <div class="grid" id="grid"></div>
-  <p class="footer">Организатор — <b>TANOS STUDIO</b></p>
+  <h1>TANOS ADMIN</h1>
+
+  <div id="login">
+    <h2>Вход</h2>
+    <input type="email" id="email" placeholder="Email" autocomplete="username" value="yakovzhovtyuk@yandex.ru">
+    <input type="password" id="pass" placeholder="Пароль" autocomplete="current-password">
+    <button class="btn" onclick="login()">Войти</button>
+    <p id="err" class="error"></p>
+  </div>
+
+  <div id="admin">
+    <div class="top">
+      <div>
+        <div class="email" id="who"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="logout()">Выйти</button>
+    </div>
+
+    <div id="status" class="status closed">Статус: загрузка...</div>
+    <button id="toggle" class="btn" onclick="toggle()" style="margin-bottom:10px">Открыть голосование</button>
+
+    <h3>Голоса</h3>
+    <div id="list"></div>
+  </div>
 </div>
-<div id="toast" class="toast"></div>
 
 <script>
   const API = 'https://evrovision.akov46849.workers.dev';
-  const votedKey = 'ev_voted_artist';
+  let token = localStorage.getItem('admin_token') || '';
+  let email = localStorage.getItem('admin_email') || '';
 
   const ARTISTS = [
-    {id:'basta', flag:'🇷🇺', country:'Россия', artist:'Баста'},
-    {id:'dara', flag:'🇧🇬', country:'Болгария', artist:'DARA'},
-    {id:'lady_gaga', flag:'🇺🇸', country:'США', artist:'Lady Gaga'},
-    {id:'ed_sheeran', flag:'🇬🇧', country:'Великобритания', artist:'Ed Sheeran'},
-    {id:'the_weeknd', flag:'🇨🇦', country:'Канада', artist:'The Weeknd'},
-    {id:'indila', flag:'🇫🇷', country:'Франция', artist:'Indila'},
-    {id:'rammstein', flag:'🇩🇪', country:'Германия', artist:'Rammstein'},
-    {id:'rosalia', flag:'🇪🇸', country:'Испания', artist:'Rosalía'},
-    {id:'eros', flag:'🇮🇹', country:'Италия', artist:'Eros Ramazzotti'},
-    {id:'zara', flag:'🇸🇪', country:'Швеция', artist:'Zara Larsson'},
-    {id:'alan_walker', flag:'🇳🇴', country:'Норвегия', artist:'Alan Walker'},
-    {id:'garrix', flag:'🇳🇱', country:'Нидерланды', artist:'Martin Garrix'},
-    {id:'sia', flag:'🇦🇺', country:'Австралия', artist:'Sia'},
-    {id:'bts', flag:'🇰🇷', country:'Южная Корея', artist:'BTS'},
-    {id:'shakira', flag:'🇨🇴', country:'Колумбия', artist:'Shakira'},
-    {id:'rema', flag:'🇳🇬', country:'Нигерия', artist:'Rema'},
-    {id:'bad_bunny', flag:'🇵🇷', country:'Пуэрто-Рико', artist:'Bad Bunny'}
+    {id:'basta', name:'🇷🇺 Баста'},
+    {id:'dara', name:'🇧🇬 DARA'},
+    {id:'lady_gaga', name:'🇺🇸 Lady Gaga'},
+    {id:'ed_sheeran', name:'🇬🇧 Ed Sheeran'},
+    {id:'the_weeknd', name:'🇨🇦 The Weeknd'},
+    {id:'indila', name:'🇫🇷 Indila'},
+    {id:'rammstein', name:'🇩🇪 Rammstein'},
+    {id:'rosalia', name:'🇪🇸 Rosalía'},
+    {id:'eros', name:'🇮🇹 Eros Ramazzotti'},
+    {id:'zara', name:'🇸🇪 Zara Larsson'},
+    {id:'alan_walker', name:'🇳🇴 Alan Walker'},
+    {id:'garrix', name:'🇳🇱 Martin Garrix'},
+    {id:'sia', name:'🇦🇺 Sia'},
+    {id:'bts', name:'🇰🇷 BTS'},
+    {id:'shakira', name:'🇨🇴 Shakira'},
+    {id:'rema', name:'🇳🇬 Rema'},
+    {id:'bad_bunny', name:'🇵🇷 Bad Bunny'}
   ];
 
-  let isOpen = false;
-  let results = {};
-  let votedId = localStorage.getItem(votedKey);
-
-  const grid = document.getElementById('grid');
-  const statusEl = document.getElementById('status');
-  const toastEl = document.getElementById('toast');
-
-  function showToast(msg, isError = false) {
-    toastEl.textContent = msg;
-    toastEl.className = 'toast show' + (isError ? ' error' : '');
-    setTimeout(() => (toastEl.className = 'toast'), 2500);
+  function showScreen() {
+    document.getElementById('login').style.display = token ? 'none' : 'block';
+    document.getElementById('admin').style.display = token ? 'block' : 'none';
+    document.getElementById('who').textContent = email ? 'Вошёл: ' + email : '';
+    if (token) refresh();
   }
 
-  function render() {
-    const maxVotes = Math.max(0, ...Object.values(results));
-    grid.innerHTML = '';
-    ARTISTS.forEach((a) => {
-      const v = results[a.id] || 0;
-      const isLeader = v > 0 && v === maxVotes;
-      const card = document.createElement('div');
-      card.className = 'card';
-      if (!isOpen) card.classList.add('disabled');
-      if (votedId === a.id) card.classList.add('voted');
-      card.innerHTML = `
-        ${isLeader ? '<span class="leader">👑</span>' : ''}
-        <span class="flag">${a.flag}</span>
-        <div class="country">${a.country}</div>
-        <div class="artist">${a.artist}</div>
-        <div class="votes"><b>${v}</b> голосов</div>
-      `;
-      card.onclick = () => vote(a.id);
-      grid.appendChild(card);
-    });
-  }
-
-  async function vote(artistId) {
-    if (!isOpen) return showToast('Голосование закрыто', true);
-    if (votedId) return showToast('Ты уже проголосовал!', true);
+  async function login() {
+    const emailVal = document.getElementById('email').value.trim();
+    const passVal = document.getElementById('pass').value;
+    const err = document.getElementById('err');
+    err.textContent = '';
     try {
-      const r = await fetch(API + '/vote', {
+      const r = await fetch(API + '/login', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({artistId})
+        body: JSON.stringify({email: emailVal, password: passVal})
       });
       const d = await r.json();
-      if (!r.ok) return showToast(d.error || 'Ошибка', true);
-      votedId = artistId;
-      localStorage.setItem(votedKey, artistId);
-      results[artistId] = d.newVotes;
-      showToast('Голос принят! ✅');
-      render();
-    } catch (e) {
-      showToast('Сеть недоступна', true);
-    }
+      if (!r.ok) { err.textContent = d.error || 'Ошибка входа'; return; }
+      token = d.token; email = d.email;
+      localStorage.setItem('admin_token', token);
+      localStorage.setItem('admin_email', email);
+      showScreen();
+    } catch (e) { err.textContent = 'Нет связи с сервером'; }
+  }
+
+  function logout() {
+    token = ''; email = '';
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_email');
+    showScreen();
   }
 
   async function refresh() {
     try {
       const [sR, rR] = await Promise.all([
-        fetch(API + '/status'),
-        fetch(API + '/results'),
+        fetch(API + '/status'), fetch(API + '/results')
       ]);
       const s = await sR.json();
       const r = await rR.json();
-      isOpen = s.isOpen;
-      results = r.results || {};
-      statusEl.textContent = isOpen ? '🟢 Голосование открыто' : '🔴 Голосование закрыто';
-      statusEl.className = 'status-banner ' + (isOpen ? 'open' : 'closed');
-      render();
+      const results = r.results || {};
+      const st = document.getElementById('status');
+      const btn = document.getElementById('toggle');
+      if (s.isOpen) {
+        st.textContent = '🟢 ГОЛОСОВАНИЕ ОТКРЫТО';
+        st.className = 'status open';
+        btn.textContent = 'ЗАКРЫТЬ ГОЛОСОВАНИЕ';
+      } else {
+        st.textContent = '🔴 ГОЛОСОВАНИЕ ЗАКРЫТО';
+        st.className = 'status closed';
+        btn.textContent = 'ОТКРЫТЬ ГОЛОСОВАНИЕ';
+      }
+      renderList(results);
     } catch (e) {
-      statusEl.textContent = 'Нет связи с сервером';
+      document.getElementById('status').textContent = 'Ошибка связи';
     }
   }
 
-  refresh();
-  setInterval(refresh, 4000);
+  function renderList(results) {
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+    ARTISTS.forEach(a => {
+      const v = results[a.id] || 0;
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <span class="name">${a.name}</span>
+        <div class="controls">
+          <button class="minus" onclick="adjust('${a.id}', -1)">−</button>
+          <span class="count" id="c-${a.id}">${v}</span>
+          <button onclick="adjust('${a.id}', 1)">+</button>
+        </div>`;
+      list.appendChild(row);
+    });
+  }
+
+  async function adjust(artistId, delta) {
+    try {
+      const r = await fetch(API + '/admin/adjust', {
+        method: 'POST',
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({artistId, delta})
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.error || 'Ошибка');
+      const el = document.getElementById('c-' + artistId);
+      if (el) el.textContent = d.newVotes;
+    } catch (e) { alert('Ошибка сети'); }
+  }
+
+  async function toggle() {
+    try {
+      const r = await fetch(API + '/admin/toggle', {
+        method: 'POST',
+        headers: {'Authorization': 'Bearer ' + token}
+      });
+      const d = await r.json();
+      if (!r.ok) return alert(d.error || 'Ошибка');
+      refresh();
+    } catch (e) { alert('Ошибка сети'); }
+  }
+
+  showScreen();
+  setInterval(() => { if (token) refresh(); }, 5000);
 </script>
 </body>
 </html>
