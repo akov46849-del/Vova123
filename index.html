@@ -3,201 +3,492 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Админ | TANOS STUDIO</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+<title>Голосование | Евровидение Roblox 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Montserrat',sans-serif;background:#0a0a14;color:#fff;padding:20px;min-height:100vh}
-  .container{max-width:800px;margin:0 auto;background:#12122a;padding:30px;border-radius:20px;border:1px solid #ff2e88}
-  :root{--pink:#ff2e88;--purple:#8a2be2;--blue:#00d4ff;--gold:#ffd166;--muted:#a0a0c0}
-  h1{color:var(--pink);text-align:center;margin-bottom:20px;font-weight:900}
-  h2{font-weight:800;margin-bottom:16px}
-  h3{margin:20px 0 10px;color:var(--muted);font-size:.85rem;letter-spacing:2px;text-transform:uppercase}
-  .status{text-align:center;padding:14px;margin:20px 0;border-radius:12px;font-weight:800;letter-spacing:1px}
-  .status.open{background:var(--blue);color:#000}
-  .status.closed{background:#333;color:var(--muted)}
-  .row{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #2a2a3a}
-  .name{font-weight:700;font-size:1rem}
-  .controls{display:flex;align-items:center;gap:8px}
-  .controls button{background:var(--pink);color:#fff;border:none;width:40px;height:40px;border-radius:10px;
-    cursor:pointer;font-weight:900;font-size:1.1rem;transition:opacity .2s}
-  .controls button.minus{background:var(--purple)}
-  .controls button:hover{opacity:.8}
-  .count{font-size:1.3rem;font-weight:900;color:var(--gold);min-width:50px;text-align:center}
-  input{width:100%;padding:14px;border-radius:12px;border:1px solid #2a2a3a;background:#0a0a14;
-    color:#fff;margin-bottom:12px;font-family:inherit;font-size:1rem}
-  .btn{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;border:none;padding:16px;
-    border-radius:12px;font-weight:800;cursor:pointer;width:100%;font-size:1rem;letter-spacing:1px}
-  .btn:hover{opacity:.9}
-  .btn-ghost{background:#2a2a3a;width:auto;padding:10px 20px;font-size:.85rem}
-  .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
-  .error{color:var(--pink);margin-top:10px;text-align:center}
-  #admin{display:none}
-  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:10px;flex-wrap:wrap}
-  .top .email{font-size:.8rem;color:var(--muted)}
+  :root {
+    --bg: #06060c;
+    --pink: #ff2e88;
+    --purple: #8a2be2;
+    --blue: #00d4ff;
+    --gold: #ffd166;
+    --silver: #e0e0e0;
+    --bronze: #cd7f32;
+    --green: #00ff88;
+    --red: #ff3366;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--bg);
+    color: #fff;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(circle at 15% 20%, rgba(138, 43, 226, 0.15), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(255, 46, 136, 0.15), transparent 40%);
+    background-attachment: fixed;
+    padding-bottom: 60px;
+    overflow-x: hidden;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+
+  /* --- LIVE ЛЕНТА --- */
+  .live-ticker {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    color: var(--blue);
+    text-align: center;
+    margin-bottom: 25px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .live-ticker.show { opacity: 1; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: pulse 1.5s infinite; }
+
+  /* --- ШАПКА --- */
+  .header { text-align: center; margin-bottom: 40px; }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin-bottom: 10px;
+    background: linear-gradient(90deg, #fff, #a0a0c0); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .total-votes { font-size: 0.9rem; color: #a0a0c0; margin-bottom: 20px; }
+  .total-votes span { color: #fff; font-weight: 900; font-size: 1.2rem; }
+
+  .status-banner {
+    display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 12px;
+    font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; transition: all 0.3s;
+  }
+  .status-banner.open { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid rgba(0, 255, 136, 0.3); box-shadow: 0 0 20px rgba(0, 255, 136, 0.1); }
+  .status-banner.closed { background: rgba(255, 51, 102, 0.1); color: var(--red); border: 1px solid rgba(255, 51, 102, 0.3); }
+
+  /* --- ЛИДЕРБОРД --- */
+  .leaderboard { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
+
+  .row {
+    position: relative; display: flex; align-items: center;
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 16px; padding: 15px 20px;
+    cursor: pointer; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    /* Для FLIP-анимации перестроения */
+    will-change: transform;
+  }
+
+  .row:hover:not(.disabled):not(.voted) {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .row.top-1 { border-color: rgba(255, 209, 102, 0.6); box-shadow: 0 0 30px rgba(255, 209, 102, 0.15); background: rgba(255, 209, 102, 0.03); }
+  .row.top-2 { border-color: rgba(224, 224, 224, 0.4); }
+  .row.top-3 { border-color: rgba(205, 127, 50, 0.4); }
+
+  /* Прогресс-бар на фоне */
+  .progress-bg {
+    position: absolute; top: 0; left: 0; bottom: 0; height: 100%;
+    background: linear-gradient(90deg, rgba(138, 43, 226, 0.15), rgba(255, 46, 136, 0.15));
+    border-right: 2px solid rgba(255, 46, 136, 0.4);
+    z-index: 0; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+  }
+  .row.top-1 .progress-bg { background: linear-gradient(90deg, rgba(255, 209, 102, 0.05), rgba(255, 209, 102, 0.15)); border-right-color: var(--gold); }
+  .row.top-2 .progress-bg { background: linear-gradient(90deg, rgba(224, 224, 224, 0.05), rgba(224, 224, 224, 0.15)); border-right-color: var(--silver); }
+  .row.top-3 .progress-bg { background: linear-gradient(90deg, rgba(205, 127, 50, 0.05), rgba(205, 127, 50, 0.15)); border-right-color: var(--bronze); }
+
+  .row-content { position: relative; z-index: 1; display: flex; align-items: center; width: 100%; gap: 15px; }
+
+  /* Место и стрелочки */
+  .rank-box { display: flex; flex-direction: column; align-items: center; width: 30px; }
+  .rank { font-size: 1.1rem; font-weight: 900; color: #666; }
+  .row.top-1 .rank { color: var(--gold); font-size: 1.4rem; }
+  .row.top-2 .rank { color: var(--silver); font-size: 1.3rem; }
+  .row.top-3 .rank { color: var(--bronze); font-size: 1.2rem; }
+  
+  .trend { font-size: 0.8rem; font-weight: 900; opacity: 0; transition: opacity 0.3s; margin-top: 2px; }
+  .trend.up { color: var(--green); opacity: 1; }
+  .trend.down { color: var(--red); opacity: 1; }
+
+  /* Инфо об артисте */
+  .info { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; }
+  .flag { font-size: 2rem; line-height: 1; }
+  .names { display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .country { font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; color: #a0a0c0; }
+  .artist { font-size: 1.1rem; font-weight: 800; }
+
+  /* Статистика */
+  .stats { display: flex; align-items: center; gap: 15px; text-align: right; }
+  .percent { font-size: 0.85rem; font-weight: 800; color: #a0a0c0; min-width: 45px; }
+  .votes-count { font-size: 1.4rem; font-weight: 900; color: #fff; min-width: 50px; text-align: right; }
+  
+  /* Кнопка */
+  .vote-btn {
+    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff; padding: 10px 18px; border-radius: 10px; font-weight: 800;
+    font-size: 0.75rem; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+    display: none; /* Скрыта по умолчанию, показывается на ховере или на мобилке */
+  }
+  .row:hover:not(.disabled):not(.voted) .vote-btn { display: block; background: linear-gradient(90deg, var(--pink), var(--purple)); border-color: transparent; box-shadow: 0 0 15px rgba(255, 46, 136, 0.4); }
+  
+  /* Состояния */
+  .row.voted { border-color: rgba(0, 212, 255, 0.5); background: rgba(0, 212, 255, 0.05); cursor: default; }
+  .row.voted .vote-btn { display: block; background: var(--blue); border-color: var(--blue); color: #000; }
+  .row.disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* --- МОДАЛЬНОЕ ОКНО ШЕРИНГА --- */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  
+  .modal {
+    background: #12122a; border: 1px solid var(--purple); border-radius: 24px;
+    padding: 40px; text-align: center; max-width: 400px; width: 90%;
+    transform: translateY(20px); transition: transform 0.3s;
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+  }
+  .modal-overlay.show .modal { transform: translateY(0); }
+  
+  .modal h2 { font-size: 1.8rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--pink), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .modal p { color: #a0a0c0; margin-bottom: 30px; font-size: 0.95rem; }
+  
+  .share-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: #0088cc; color: #fff; text-decoration: none;
+    padding: 16px 30px; border-radius: 12px; font-weight: 800; font-size: 1rem;
+    transition: transform 0.2s; width: 100%;
+  }
+  .share-btn:hover { transform: scale(1.02); }
+  .close-btn { margin-top: 15px; background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+  
+  .empty-state { text-align: center; color: #666; padding: 40px 0; font-size: 0.9rem; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.5); } }
+  
+  @media (max-width: 600px) {
+    .row { padding: 12px 15px; }
+    .flag { font-size: 1.6rem; }
+    .artist { font-size: 0.95rem; }
+    .stats { gap: 10px; }
+    .votes-count { font-size: 1.2rem; min-width: 35px; }
+    .percent { display: none; } /* Скрываем проценты на телефоне для экономии места */
+    .vote-btn { display: block; padding: 8px 12px; font-size: 0.7rem; }
+    .row:hover:not(.disabled):not(.voted) { transform: none; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>TANOS ADMIN</h1>
-
-  <div id="login">
-    <h2>Вход</h2>
-    <input type="email" id="email" placeholder="Email" autocomplete="username" value="yakovzhovtyuk@yandex.ru">
-    <input type="password" id="pass" placeholder="Пароль" autocomplete="current-password">
-    <button class="btn" onclick="login()">Войти</button>
-    <p id="err" class="error"></p>
+  
+  <!-- Лента Live -->
+  <div id="liveTicker" class="live-ticker">
+    <div class="live-dot"></div>
+    <span id="liveText">Ожидание новых голосов...</span>
   </div>
 
-  <div id="admin">
-    <div class="top">
-      <div>
-        <div class="email" id="who"></div>
-      </div>
-      <button class="btn btn-ghost" onclick="logout()">Выйти</button>
-    </div>
+  <div class="header">
+    <h1>ГОЛОСОВАНИЕ</h1>
+    <div class="total-votes">Всего отдано голосов: <span id="totalVotes">0</span></div>
+    <div id="statusBanner" class="status-banner closed">Загрузка...</div>
+  </div>
 
-    <div id="status" class="status closed">Статус: загрузка...</div>
-    <button id="toggle" class="btn" onclick="toggle()" style="margin-bottom:10px">Открыть голосование</button>
+  <div class="leaderboard" id="leaderboard"></div>
+</div>
 
-    <h3>Голоса</h3>
-    <div id="list"></div>
+<!-- Модалка шеринга -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h2>Голос учтен! 🎉</h2>
+    <p id="shareText">Ты поддержал своего фаворита. Расскажи друзьям!</p>
+    <a href="#" id="tgShareBtn" target="_blank" class="share-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.31-.346-.11l-6.4 4.04-2.77-.86c-.6-.19-.61-.6.127-.89l10.84-4.18c.5-.19.95.11.785.89z"/></svg>
+      Поделиться в Telegram
+    </a>
+    <button class="close-btn" onclick="document.getElementById('shareModal').classList.remove('show')">Закрыть</button>
   </div>
 </div>
 
 <script>
   const API = 'https://evrovision.akov46849.workers.dev';
-  let token = localStorage.getItem('admin_token') || '';
-  let email = localStorage.getItem('admin_email') || '';
+  const votedKey = 'ev_voted_artist';
+  const NAMES_CACHE = ['User123', 'RobloxKing', 'MusicLover', 'SuperStar', 'PlayerOne', 'Anon', 'EuroFan', 'DJ_Pro'];
 
   const ARTISTS = [
-    {id:'basta', name:'🇷🇺 Баста'},
-    {id:'dara', name:'🇧🇬 DARA'},
-    {id:'lady_gaga', name:'🇺🇸 Lady Gaga'},
-    {id:'ed_sheeran', name:'🇬🇧 Ed Sheeran'},
-    {id:'the_weeknd', name:'🇨🇦 The Weeknd'},
-    {id:'indila', name:'🇫🇷 Indila'},
-    {id:'rammstein', name:'🇩🇪 Rammstein'},
-    {id:'rosalia', name:'🇪🇸 Rosalía'},
-    {id:'eros', name:'🇮🇹 Eros Ramazzotti'},
-    {id:'zara', name:'🇸🇪 Zara Larsson'},
-    {id:'alan_walker', name:'🇳🇴 Alan Walker'},
-    {id:'garrix', name:'🇳🇱 Martin Garrix'},
-    {id:'sia', name:'🇦🇺 Sia'},
-    {id:'bts', name:'🇰🇷 BTS'},
-    {id:'shakira', name:'🇨🇴 Shakira'},
-    {id:'rema', name:'🇳🇬 Rema'},
-    {id:'bad_bunny', name:'🇵🇷 Bad Bunny'}
+    {id:'basta', flag:'🇷🇺', country:'Россия', artist:'Баста'},
+    {id:'dara', flag:'🇧🇬', country:'Болгария', artist:'DARA'},
+    {id:'lady_gaga', flag:'🇺🇸', country:'США', artist:'Lady Gaga'},
+    {id:'ed_sheeran', flag:'🇬🇧', country:'Великобритания', artist:'Ed Sheeran'},
+    {id:'the_weeknd', flag:'🇨🇦', country:'Канада', artist:'The Weeknd'},
+    {id:'indila', flag:'🇫🇷', country:'Франция', artist:'Indila'},
+    {id:'rammstein', flag:'🇩🇪', country:'Германия', artist:'Rammstein'},
+    {id:'rosalia', flag:'🇪🇸', country:'Испания', artist:'Rosalía'},
+    {id:'eros', flag:'🇮🇹', country:'Италия', artist:'Eros Ramazzotti'},
+    {id:'zara', flag:'🇸🇪', country:'Швеция', artist:'Zara Larsson'},
+    {id:'alan_walker', flag:'🇳🇴', country:'Норвегия', artist:'Alan Walker'},
+    {id:'garrix', flag:'🇳🇱', country:'Нидерланды', artist:'Martin Garrix'},
+    {id:'sia', flag:'🇦🇺', country:'Австралия', artist:'Sia'},
+    {id:'bts', flag:'🇰🇷', country:'Южная Корея', artist:'BTS'},
+    {id:'shakira', flag:'🇨🇴', country:'Колумбия', artist:'Shakira'},
+    {id:'rema', flag:'🇳🇬', country:'Нигерия', artist:'Rema'},
+    {id:'bad_bunny', flag:'🇵🇷', country:'Пуэрто-Рико', artist:'Bad Bunny'}
   ];
 
-  function showScreen() {
-    document.getElementById('login').style.display = token ? 'none' : 'block';
-    document.getElementById('admin').style.display = token ? 'block' : 'none';
-    document.getElementById('who').textContent = email ? 'Вошёл: ' + email : '';
-    if (token) refresh();
+  let isOpen = false;
+  let results = {};
+  let prevRanks = {}; // Для стрелочек
+  let prevVotesTotal = 0;
+  let votedId = localStorage.getItem(votedKey);
+  let isFirstLoad = true;
+
+  const board = document.getElementById('leaderboard');
+  const statusBanner = document.getElementById('statusBanner');
+  const totalVotesEl = document.getElementById('totalVotes');
+  const liveTicker = document.getElementById('liveTicker');
+  const liveText = document.getElementById('liveText');
+  const shareModal = document.getElementById('shareModal');
+
+  // Web Audio API для звуков (не требует файлов)
+  function playSound(type) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      
+      if (type === 'pop') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(400, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        osc.start(); osc.stop(ctx.currentTime + 0.1);
+      }
+    } catch(e) {}
   }
 
-  async function login() {
-    const emailVal = document.getElementById('email').value.trim();
-    const passVal = document.getElementById('pass').value;
-    const err = document.getElementById('err');
-    err.textContent = '';
+  // Показ ленты Live
+  function showLiveMessage(artistName) {
+    const randomUser = NAMES_CACHE[Math.floor(Math.random() * NAMES_CACHE.length)];
+    const msg = `Только что ${randomUser} проголосовал за ${artistName}`;
+    liveText.textContent = msg;
+    liveTicker.classList.add('show');
+    
+    setTimeout(() => { liveTicker.classList.remove('show'); }, 5000);
+  }
+
+  // Рендер и анимация перестроения (FLIP)
+  function render(newResults) {
+    // 1. Запоминаем старые позиции
+    const oldPositions = {};
+    document.querySelectorAll('.row').forEach(row => {
+      oldPositions[row.dataset.id] = row.getBoundingClientRect().top;
+    });
+
+    // 2. Считаем новые позиции
+    const sorted = [...ARTISTS].sort((a, b) => (newResults[b.id] || 0) - (newResults[a.id] || 0));
+    const totalVotes = Object.values(newResults).reduce((a, b) => a + b, 0) || 1;
+    const maxVotes = Math.max(...Object.values(newResults), 1);
+
+    totalVotesEl.textContent = Object.values(newResults).reduce((a, b) => a + b, 0);
+
+    // 3. Обновляем или создаем DOM-элементы
+    board.innerHTML = '';
+    
+    sorted.forEach((artist, index) => {
+      const v = newResults[artist.id] || 0;
+      const percent = Math.round((v / totalVotes) * 100);
+      const progressWidth = (v / maxVotes) * 100;
+      const rank = index + 1;
+      
+      // Определяем стрелочку
+      let trendHtml = '';
+      if (!isFirstLoad && prevRanks[artist.id]) {
+        const diff = prevRanks[artist.id] - rank;
+        if (diff > 0) trendHtml = `<div class="trend up" id="trend-${artist.id}">▲</div>`;
+        if (diff < 0) trendHtml = `<div class="trend down" id="trend-${artist.id}">▼</div>`;
+      }
+
+      const row = document.createElement('div');
+      row.className = `row ${rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : ''}`;
+      row.dataset.id = artist.id;
+      
+      if (!isOpen) row.classList.add('disabled');
+      if (votedId === artist.id) row.classList.add('voted');
+      if (votedId && votedId !== artist.id) row.classList.add('disabled'); // Блокируем остальные, если голос отдан
+
+      row.innerHTML = `
+        <div class="progress-bg" style="width: ${progressWidth}%"></div>
+        <div class="row-content">
+          <div class="rank-box">
+            <div class="rank">${rank}</div>
+            ${trendHtml}
+          </div>
+          <div class="info">
+            <div class="flag">${artist.flag}</div>
+            <div class="names">
+              <div class="country">${artist.country}</div>
+              <div class="artist">${artist.artist}</div>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="percent">${percent}%</div>
+            <div class="votes-count">${v}</div>
+            <div class="vote-btn">${votedId === artist.id ? 'Твой голос' : 'Голос'}</div>
+          </div>
+        </div>
+      `;
+      
+      if (!votedId && isOpen) {
+        row.onclick = () => vote(artist.id, artist.artist);
+      }
+      
+      board.appendChild(row);
+    });
+
+    // 4. Применяем FLIP-анимацию
+    document.querySelectorAll('.row').forEach(row => {
+      const oldTop = oldPositions[row.dataset.id];
+      if (oldTop !== undefined) {
+        const newTop = row.getBoundingClientRect().top;
+        const delta = oldTop - newTop;
+        
+        if (delta !== 0) {
+          row.style.transform = `translateY(${delta}px)`;
+          row.style.transition = 'none';
+          requestAnimationFrame(() => {
+            row.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            row.style.transform = '';
+          });
+        }
+      }
+    });
+
+    // Сохраняем ранги для следующего раза
+    prevRanks = {};
+    sorted.forEach((a, i) => prevRanks[a.id] = i + 1);
+    
+    // Убираем стрелочки через 3 секунды
+    setTimeout(() => {
+      document.querySelectorAll('.trend').forEach(el => el.style.opacity = 0);
+    }, 3000);
+
+    isFirstLoad = false;
+  }
+
+  // Голосование
+  async function vote(artistId, artistName) {
+    if (!isOpen || votedId) return;
+    
+    playSound('pop');
+
     try {
-      const r = await fetch(API + '/login', {
+      const r = await fetch(API + '/vote', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({email: emailVal, password: passVal})
+        body: JSON.stringify({artistId})
       });
       const d = await r.json();
-      if (!r.ok) { err.textContent = d.error || 'Ошибка входа'; return; }
-      token = d.token; email = d.email;
-      localStorage.setItem('admin_token', token);
-      localStorage.setItem('admin_email', email);
-      showScreen();
-    } catch (e) { err.textContent = 'Нет связи с сервером'; }
-  }
-
-  function logout() {
-    token = ''; email = '';
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_email');
-    showScreen();
-  }
-
-  async function refresh() {
-    try {
-      const [sR, rR] = await Promise.all([
-        fetch(API + '/status'), fetch(API + '/results')
-      ]);
-      const s = await sR.json();
-      const r = await rR.json();
-      const results = r.results || {};
-      const st = document.getElementById('status');
-      const btn = document.getElementById('toggle');
-      if (s.isOpen) {
-        st.textContent = '🟢 ГОЛОСОВАНИЕ ОТКРЫТО';
-        st.className = 'status open';
-        btn.textContent = 'ЗАКРЫТЬ ГОЛОСОВАНИЕ';
-      } else {
-        st.textContent = '🔴 ГОЛОСОВАНИЕ ЗАКРЫТО';
-        st.className = 'status closed';
-        btn.textContent = 'ОТКРЫТЬ ГОЛОСОВАНИЕ';
+      
+      if (!r.ok) {
+        alert(d.error || 'Ошибка');
+        return;
       }
-      renderList(results);
+      
+      votedId = artistId;
+      localStorage.setItem(votedKey, artistId);
+      
+      // Конфетти!
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff2e88', '#8a2be2', '#00d4ff', '#ffd166']
+      });
+      
+      // Показываем модалку шеринга
+      setTimeout(() => {
+        const shareUrl = encodeURIComponent('https://akov46849-del.github.io/EVROVIDENIE2026ROBLOX/'); // Ссылка на твой сайт
+        const shareText = encodeURIComponent(`Я отдал свой голос за ${artistName} на Первом Евровидении в Roblox! Присоединяйся!`);
+        document.getElementById('tgShareBtn').href = `https://t.me/share/url?url=${shareUrl}&text=${shareText}`;
+        shareModal.classList.add('show');
+      }, 800);
+
+      // Принудительно обновляем данные, чтобы перестроить список
+      results[artistId] = d.newVotes;
+      render(results);
+
     } catch (e) {
-      document.getElementById('status').textContent = 'Ошибка связи';
+      console.error(e);
     }
   }
 
-  function renderList(results) {
-    const list = document.getElementById('list');
-    list.innerHTML = '';
-    ARTISTS.forEach(a => {
-      const v = results[a.id] || 0;
-      const row = document.createElement('div');
-      row.className = 'row';
-      row.innerHTML = `
-        <span class="name">${a.name}</span>
-        <div class="controls">
-          <button class="minus" onclick="adjust('${a.id}', -1)">−</button>
-          <span class="count" id="c-${a.id}">${v}</span>
-          <button onclick="adjust('${a.id}', 1)">+</button>
-        </div>`;
-      list.appendChild(row);
-    });
-  }
-
-  async function adjust(artistId, delta) {
+  // Обновление статуса и данных
+  async function refresh() {
     try {
-      const r = await fetch(API + '/admin/adjust', {
-        method: 'POST',
-        headers: {
-          'Content-Type':'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({artistId, delta})
-      });
-      const d = await r.json();
-      if (!r.ok) return alert(d.error || 'Ошибка');
-      const el = document.getElementById('c-' + artistId);
-      if (el) el.textContent = d.newVotes;
-    } catch (e) { alert('Ошибка сети'); }
+      const [sR, rR] = await Promise.all([
+        fetch(API + '/status'),
+        fetch(API + '/results'),
+      ]);
+      const s = await sR.json();
+      const r = await rR.json();
+      
+      isOpen = s.isOpen;
+      const newResults = r.results || {};
+      
+      // Проверка на новые голоса для Live-ленты
+      const totalNow = Object.values(newResults).reduce((a, b) => a + b, 0);
+      if (!isFirstLoad && totalNow > prevVotesTotal) {
+        // Ищем, кто прибавил
+        for (let key in newResults) {
+          if ((newResults[key] || 0) > (results[key] || 0)) {
+            const found = ARTISTS.find(a => a.id === key);
+            if (found) showLiveMessage(found.artist);
+            break;
+          }
+        }
+      }
+      prevVotesTotal = totalNow;
+
+      if (JSON.stringify(newResults) !== JSON.stringify(results)) {
+        results = newResults;
+        render(results);
+      }
+
+      if (isOpen) {
+        statusBanner.textContent = '🟢 Голосование открыто';
+        statusBanner.className = 'status-banner open';
+      } else {
+        statusBanner.textContent = '🔴 Голосование закрыто';
+        statusBanner.className = 'status-banner closed';
+      }
+      
+    } catch (e) {
+      console.error('Poll error', e);
+    }
   }
 
-  async function toggle() {
-    try {
-      const r = await fetch(API + '/admin/toggle', {
-        method: 'POST',
-        headers: {'Authorization': 'Bearer ' + token}
-      });
-      const d = await r.json();
-      if (!r.ok) return alert(d.error || 'Ошибка');
-      refresh();
-    } catch (e) { alert('Ошибка сети'); }
-  }
-
-  showScreen();
-  setInterval(() => { if (token) refresh(); }, 5000);
+  // Запуск
+  refresh();
+  setInterval(refresh, 3000);
 </script>
 </body>
 </html>
